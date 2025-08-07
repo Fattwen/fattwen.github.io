@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>釜山冬季驚喜求婚互動指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Embrace (Beige, Soft Gold, Deep Charcoal, Muted Rose) -->
+    <!-- Application Structure Plan: The application is designed as an interactive "Proposal Idea Explorer" instead of a linear report. The core structure is a filter-based navigation system where users select a proposal "theme" (Skyline, Spectacle, Ruse). This choice dynamically displays corresponding proposal options as info cards. This structure was chosen to empower users to quickly navigate to the styles that resonate with them most. The key feature is an interactive radar chart for direct, multi-criteria comparison of selected options, transforming static tables into an engaging decision-making tool. This user-driven approach is more efficient and engaging than reading a static document. -->
+    <!-- Visualization & Content Choices: 
+        - Report Sections -> Goal: Organize -> Viz: Thematic Buttons -> Interaction: Click to filter -> Justification: Intuitive, task-oriented navigation. (HTML/JS)
+        - Proposal Options -> Goal: Inform/Compare -> Viz: Info Cards with Icons -> Interaction: Static display -> Justification: Provides at-a-glance summaries. (HTML/Tailwind)
+        - Comparison Tables -> Goal: Compare -> Viz: Interactive Radar Chart -> Interaction: Checkboxes to update chart -> Justification: Dynamic, user-driven comparison is more powerful than static tables. (Chart.js/Canvas)
+        - Vendor Info -> Goal: Inform -> Viz: Simple List -> Interaction: None -> Justification: Clear and direct presentation of resources. (HTML)
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FDF8F5;
+            color: #4A4A4A;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 500px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 50vh;
+            }
+        }
+        .nav-btn {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .nav-btn.active {
+            background-color: #EAB3A8;
+            color: #FFFFFF;
+            border-color: #EAB3A8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(234, 179, 168, 0.4);
+        }
+        .nav-btn:hover:not(.active) {
+            background-color: #F5E1DA;
+            border-color: #F5E1DA;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+        .checkbox-label {
+            transition: all 0.2s ease;
+        }
+        .checkbox-input:checked + .checkbox-label {
+            background-color: #8D7B78;
+            color: white;
+            border-color: #8D7B78;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#8D7B78] mb-4">釜山冬季驚喜求婚</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">這份互動指南將幫助您策劃一場意想不到的浪漫求婚。摒棄寒冷的海灘，讓我們在溫暖與私密的氛圍中，創造永恆的感動瞬間。</p>
+        </header>
+
+        <nav id="theme-nav" class="flex flex-wrap justify-center gap-3 md:gap-6 mb-12">
+            <button data-theme="skyline" class="nav-btn active text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-md">🏙️ 天際線的宣言</button>
+            <button data-theme="spectacle" class="nav-btn text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-md">🎭 私人的盛典</button>
+            <button data-theme="ruse" class="nav-btn text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-md">🤫 沉浸式的計謀</button>
+        </nav>
+
+        <main id="proposal-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        </main>
+
+        <section id="comparison-tool" class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-16">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-[#8D7B78] mb-2">方案互動比較分析</h2>
+                <p class="text-gray-600">勾選您感興趣的方案，在雷達圖上直觀比較它們的優劣勢。</p>
+            </div>
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div id="checkbox-container" class="lg:w-1/3 space-y-3">
+                </div>
+                <div class="lg:w-2/3">
+                    <div class="chart-container">
+                        <canvas id="proposalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="logistics" class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-[#8D7B78] mb-2">關鍵後勤：尋求專業協助</h2>
+                <p class="text-gray-600">要從海外策劃一場完美的驚喜，一位可靠的本地盟友至關重要。</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-700">韓國本地策劃公司</h3>
+                    <p class="text-gray-600">深入了解當地，與場地關係穩固。推薦：Love Knot, The Rose。</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-700">國際求婚策劃公司</h3>
+                    <p class="text-gray-600">擅長跨文化溝通，處理複雜後勤。推薦：The Yes Girls, GoWonderfully。</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-700">攝影師主導策劃</h3>
+                    <p class="text-gray-600">專注捕捉瞬間，攝影師兼任地面協調。推薦：Flytographer。</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const proposalData = {
+            skyline: [
+                { id: 'x-the-sky', name: '釜山 X the Sky', icon: '🔭', desc: '在韓國第二高樓的觀景餐廳，以360度全景為背景，透過專業策劃服務執行。', scores: { budget: 3, privacy: 3, surprise: 3, planning: 3, uniqueness: 3 } },
+                { id: 'signiel-hotel', name: 'Signiel 尊榮套房', icon: '💎', desc: '在釜山最奢華酒店的套房內，享受極致的私密性與客製化佈置，創造專屬的空中聖殿。', scores: { budget: 2, privacy: 5, surprise: 3, planning: 2, uniqueness: 2 } },
+                { id: 'park-hyatt', name: 'Park Hyatt 餐廳', icon: '🥂', desc: '直面廣安大橋的標誌性景觀，提供一站式求婚套餐，是便捷且浪漫的奢華之選。', scores: { budget: 3, privacy: 2, surprise: 2, planning: 5, uniqueness: 2 } },
+            ],
+            spectacle: [
+                { id: 'drone-show', name: '客製化無人機秀', icon: '🚀', desc: '一場雄心壯志的夢想，由官方表演公司UVify打造，但成本極其高昂，更偏向概念性。', scores: { budget: 1, privacy: 4, surprise: 5, planning: 1, uniqueness: 5 } },
+                { id: 'movie-proposal', name: '電影般的宣言', icon: '🎬', desc: '在私人電影院或求婚咖啡館播放您們的愛情故事影片，情感衝擊力強，兼具性價比。', scores: { budget: 5, privacy: 4, surprise: 4, planning: 4, uniqueness: 4 } },
+            ],
+            ruse: [
+                { id: 'aquarium', name: '水底的驚喜', icon: '🐠', desc: '在SEA LIFE水族館，由潛水員在水中展開求婚標語，創造經典且視覺震撼的驚喜。', scores: { budget: 4, privacy: 2, surprise: 5, planning: 2, uniqueness: 4 } },
+                { id: 'workshop', name: '工匠的巧計', icon: '💍', desc: '將求婚隱藏在香水或戒指製作等手工課程的最終環節，是出其不意的終極計謀。', scores: { budget: 5, privacy: 4, surprise: 5, planning: 3, uniqueness: 5 } },
+                { id: 'yacht', name: '私密的航行', icon: '🛥️', desc: '在溫暖的私人遊艇船艙內求婚，窗外是璀璨的冬夜海景，將天氣變為浪漫的催化劑。', scores: { budget: 3, privacy: 4, surprise: 2, planning: 5, uniqueness: 3 } },
+            ]
+        };
+
+        const allProposals = [].concat(...Object.values(proposalData));
+
+        const cardContainer = document.getElementById('proposal-cards');
+        const navContainer = document.getElementById('theme-nav');
+        const checkboxContainer = document.getElementById('checkbox-container');
+        let proposalChart;
+
+        const chartLabels = {
+            budget: '預算 (越高越省)',
+            privacy: '私密性',
+            surprise: '驚喜指數',
+            planning: '規劃難度 (越高越易)',
+            uniqueness: '獨特性'
+        };
+
+        const renderCards = (theme) => {
+            cardContainer.innerHTML = '';
+            const themeData = proposalData[theme];
+            themeData.forEach(p => {
+                cardContainer.innerHTML += `
+                    <div class="card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center">
+                        <div class="text-5xl mb-4">${p.icon}</div>
+                        <h3 class="text-2xl font-bold mb-2 text-gray-800">${p.name}</h3>
+                        <p class="text-gray-600 flex-grow">${p.desc}</p>
+                    </div>
+                `;
+            });
+        };
+
+        const renderCheckboxes = () => {
+            checkboxContainer.innerHTML = '<h4 class="text-xl font-bold mb-3 text-gray-700">選擇比較項目：</h4>';
+            allProposals.forEach(p => {
+                checkboxContainer.innerHTML += `
+                    <div class="flex items-center">
+                        <input type="checkbox" id="check-${p.id}" data-id="${p.id}" class="checkbox-input hidden">
+                        <label for="check-${p.id}" class="checkbox-label w-full cursor-pointer border-2 border-gray-200 rounded-lg py-2 px-4">${p.name}</label>
+                    </div>
+                `;
+            });
+        };
+        
+        const updateChart = () => {
+            const selectedIDs = Array.from(document.querySelectorAll('.checkbox-input:checked')).map(cb => cb.dataset.id);
+            
+            const datasets = selectedIDs.map((id, index) => {
+                const proposal = allProposals.find(p => p.id === id);
+                const colors = [
+                    'rgba(234, 179, 168, 0.5)', 
+                    'rgba(141, 123, 120, 0.5)',
+                    'rgba(245, 225, 218, 0.7)',
+                    'rgba(196, 180, 168, 0.5)',
+                    'rgba(173, 156, 147, 0.5)',
+                    'rgba(221, 203, 196, 0.7)',
+                    'rgba(112, 99, 96, 0.5)',
+                    'rgba(237, 218, 208, 0.5)'
+                ];
+                const borderColors = [
+                    'rgba(234, 179, 168, 1)', 
+                    'rgba(141, 123, 120, 1)',
+                    'rgba(245, 225, 218, 1)',
+                    'rgba(196, 180, 168, 1)',
+                    'rgba(173, 156, 147, 1)',
+                    'rgba(221, 203, 196, 1)',
+                    'rgba(112, 99, 96, 1)',
+                    'rgba(237, 218, 208, 1)'
+                ];
+
+                return {
+                    label: proposal.name,
+                    data: Object.values(proposal.scores),
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: borderColors[index % borderColors.length],
+                    borderWidth: 2,
+                    pointBackgroundColor: borderColors[index % borderColors.length],
+                    pointRadius: 4,
+                };
+            });
+
+            proposalChart.data.datasets = datasets;
+            proposalChart.update();
+        };
+
+        const initChart = () => {
+            const ctx = document.getElementById('proposalChart').getContext('2d');
+            proposalChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: Object.values(chartLabels),
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: { size: 12, family: "'Noto Sans TC', sans-serif" },
+                                color: '#4A4A4A'
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                min: 0,
+                                max: 5,
+                                stepSize: 1,
+                                backdropColor: 'rgba(255, 255, 255, 0.75)',
+                                color: '#888'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 14, family: "'Noto Sans TC', sans-serif" }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.r !== null) {
+                                        label += context.parsed.r;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        navContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const theme = e.target.dataset.theme;
+                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                renderCards(theme);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards('skyline');
+            renderCheckboxes();
+            initChart();
+            
+            checkboxContainer.addEventListener('change', (e) => {
+                if(e.target.classList.contains('checkbox-input')) {
+                    updateChart();
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
