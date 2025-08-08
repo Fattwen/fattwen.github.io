@@ -3,308 +3,456 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>釜山冬季驚喜求婚互動指南</title>
+    <title>名古屋鑑賞家之旅 - 互動行程導覽</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Chosen Palette: Warm Embrace (Beige, Soft Gold, Deep Charcoal, Muted Rose) -->
-    <!-- Application Structure Plan: The application is designed as an interactive "Proposal Idea Explorer" instead of a linear report. The core structure is a filter-based navigation system where users select a proposal "theme" (Skyline, Spectacle, Ruse). This choice dynamically displays corresponding proposal options as info cards. This structure was chosen to empower users to quickly navigate to the styles that resonate with them most. The key feature is an interactive radar chart for direct, multi-criteria comparison of selected options, transforming static tables into an engaging decision-making tool. This user-driven approach is more efficient and engaging than reading a static document. -->
+    <!-- Chosen Palette: Warm Neutrals (Stone, Amber) -->
+    <!-- Application Structure Plan: A single-page application (SPA) designed as a travel dashboard. A fixed top navigation allows users to switch between four main views: '行程總覽' (Itinerary), '預算速覽' (Budget), '行前準備' (Checklist), and '實用資訊' (Info & Map). The itinerary view further uses daily tabs (Day 1-5) for granular control. This structure avoids scrolling through a long document, providing quick, task-oriented access to all trip information in a centralized, interactive format, which is far more user-friendly than a static report. -->
     <!-- Visualization & Content Choices: 
-        - Report Sections -> Goal: Organize -> Viz: Thematic Buttons -> Interaction: Click to filter -> Justification: Intuitive, task-oriented navigation. (HTML/JS)
-        - Proposal Options -> Goal: Inform/Compare -> Viz: Info Cards with Icons -> Interaction: Static display -> Justification: Provides at-a-glance summaries. (HTML/Tailwind)
-        - Comparison Tables -> Goal: Compare -> Viz: Interactive Radar Chart -> Interaction: Checkboxes to update chart -> Justification: Dynamic, user-driven comparison is more powerful than static tables. (Chart.js/Canvas)
-        - Vendor Info -> Goal: Inform -> Viz: Simple List -> Interaction: None -> Justification: Clear and direct presentation of resources. (HTML)
+        - Itinerary: Presented as an interactive vertical timeline (HTML/CSS) with icons for different activity types to improve scannability. Goal: Organize & Inform. Interaction: Daily tabs to filter content. Justification: Chronological and intuitive for a travel plan.
+        - Budget: A horizontal bar chart (Chart.js/Canvas) visualizes major expenses from the '錢錢.csv' file. Goal: Compare & Inform. Interaction: Tooltips on hover. Justification: Provides an immediate, clear comparison of cost distribution, which is more impactful than a simple table.
+        - Checklist: An interactive checklist (HTML forms) from '行李清單.csv'. Goal: Organize & Task Management. Interaction: Clickable checkboxes. Justification: Turns a passive list into a functional tool.
+        - Map & Info: An embedded Google Map and reference tables. Goal: Inform & Navigate. Interaction: Standard map controls. Justification: Provides essential geographical context and quick reference data.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #FDF8F5;
-            color: #4A4A4A;
+            background-color: #fdfcf9;
+        }
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        .nav-btn.active {
+            background-color: #8d7b68;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .day-tab.active {
+            border-color: #a4907c;
+            background-color: #f1eadc;
+            font-weight: 700;
+        }
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: 1.25rem;
+            top: 1.25rem;
+            bottom: -1.25rem;
+            width: 2px;
+            background-color: #e5e7eb;
+            transform: translateX(-50%);
+        }
+        .timeline-item:last-child:before {
+            display: none;
         }
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            height: 40vh;
-            max-height: 500px;
+            height: 400px;
+            max-height: 50vh;
         }
         @media (min-width: 768px) {
             .chart-container {
-                height: 50vh;
+                height: 500px;
             }
-        }
-        .nav-btn {
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        .nav-btn.active {
-            background-color: #EAB3A8;
-            color: #FFFFFF;
-            border-color: #EAB3A8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(234, 179, 168, 0.4);
-        }
-        .nav-btn:hover:not(.active) {
-            background-color: #F5E1DA;
-            border-color: #F5E1DA;
-        }
-        .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-        }
-        .checkbox-label {
-            transition: all 0.2s ease;
-        }
-        .checkbox-input:checked + .checkbox-label {
-            background-color: #8D7B78;
-            color: white;
-            border-color: #8D7B78;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="text-stone-800">
 
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-[#8D7B78] mb-4">釜山冬季驚喜求婚</h1>
-            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">這份互動指南將幫助您策劃一場意想不到的浪漫求婚。摒棄寒冷的海灘，讓我們在溫暖與私密的氛圍中，創造永恆的感動瞬間。</p>
+    <div class="min-h-screen">
+        <header class="bg-[#c8b6a6]/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col sm:flex-row items-center justify-between py-4">
+                    <h1 class="text-2xl font-bold text-stone-900 mb-4 sm:mb-0">名古屋鑑賞家之旅 🍁</h1>
+                    <nav id="main-nav" class="flex flex-wrap justify-center gap-2">
+                        <button data-target="itinerary" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200 active">行程總覽</button>
+                        <button data-target="budget" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200">預算速覽</button>
+                        <button data-target="checklist" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200">行前準備</button>
+                        <button data-target="info" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200">實用資訊</button>
+                    </nav>
+                </div>
+            </div>
         </header>
 
-        <nav id="theme-nav" class="flex flex-wrap justify-center gap-3 md:gap-6 mb-12">
-            <button data-theme="skyline" class="nav-btn active text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-md">🏙️ 天際線的宣言</button>
-            <button data-theme="spectacle" class="nav-btn text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-md">🎭 私人的盛典</button>
-            <button data-theme="ruse" class="nav-btn text-lg font-semibold py-3 px-6 rounded-full bg-white shadow-md">🤫 沉浸式的計謀</button>
-        </nav>
-
-        <main id="proposal-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-        </main>
-
-        <section id="comparison-tool" class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-16">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-[#8D7B78] mb-2">方案互動比較分析</h2>
-                <p class="text-gray-600">勾選您感興趣的方案，在雷達圖上直觀比較它們的優劣勢。</p>
-            </div>
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div id="checkbox-container" class="lg:w-1/3 space-y-3">
+        <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <div id="content-itinerary" class="content-section">
+                <div class="mb-6">
+                    <div id="day-tabs" class="flex flex-wrap items-center gap-2 border-b border-stone-200 pb-3">
+                        <button data-day="1" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg active">9/17 (三) 抵達日</button>
+                        <button data-day="2" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/18 (四) 奇幻日</button>
+                        <button data-day="3" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/19 (五) 文化日</button>
+                        <button data-day="4" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/20 (六) 探索日</button>
+                        <button data-day="5" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/21 (日) 歸程日</button>
+                    </div>
                 </div>
-                <div class="lg:w-2/3">
+                <div id="itinerary-content"></div>
+            </div>
+
+            <div id="content-budget" class="content-section hidden">
+                <h2 class="text-3xl font-bold mb-6 text-[#8d7b68]">預算速覽</h2>
+                <div class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
+                    <p class="mb-6 text-stone-600">此圖表顯示了本次旅行中已知的幾項主要共同支出（以日圓計），幫助您快速了解費用分佈。詳細的個人分攤費用請參考下方的表格。</p>
                     <div class="chart-container">
-                        <canvas id="proposalChart"></canvas>
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                    <h3 class="text-2xl font-bold mt-12 mb-4 text-[#a4907c]">詳細費用分攤 (JPY)</h3>
+                    <div class="overflow-x-auto">
+                        <table id="budget-table" class="w-full text-left border-collapse">
+                            <thead class="bg-[#f1eadc]">
+                                <tr>
+                                    <th class="p-3 font-semibold text-sm text-stone-700">項目</th>
+                                    <th class="p-3 font-semibold text-sm text-stone-700">智盈(2)</th>
+                                    <th class="p-3 font-semibold text-sm text-stone-700">哲綸</th>
+                                    <th class="p-3 font-semibold text-sm text-stone-700">証傑(2)</th>
+                                    <th class="p-3 font-semibold text-sm text-stone-700">傑瑀</th>
+                                    <th class="p-3 font-semibold text-sm text-stone-700">泓維(2)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section id="logistics" class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-[#8D7B78] mb-2">關鍵後勤：尋求專業協助</h2>
-                <p class="text-gray-600">要從海外策劃一場完美的驚喜，一位可靠的本地盟友至關重要。</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                <div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-700">韓國本地策劃公司</h3>
-                    <p class="text-gray-600">深入了解當地，與場地關係穩固。推薦：Love Knot, The Rose。</p>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-700">國際求婚策劃公司</h3>
-                    <p class="text-gray-600">擅長跨文化溝通，處理複雜後勤。推薦：The Yes Girls, GoWonderfully。</p>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-700">攝影師主導策劃</h3>
-                    <p class="text-gray-600">專注捕捉瞬間，攝影師兼任地面協調。推薦：Flytographer。</p>
+            <div id="content-checklist" class="content-section hidden">
+                <h2 class="text-3xl font-bold mb-6 text-[#8d7b68]">行前準備互動清單</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div id="checklist-carryon" class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
+                        <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">🎒 隨身行李</h3>
+                    </div>
+                    <div id="checklist-checked" class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
+                        <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">🧳 托運行李</h3>
+                    </div>
                 </div>
             </div>
-        </section>
 
+            <div id="content-info" class="content-section hidden">
+                <h2 class="text-3xl font-bold mb-6 text-[#8d7b68]">實用資訊 & 地圖</h2>
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
+                        <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">📍 旅程地圖</h3>
+                        <p class="mb-4 text-stone-600">這是一份包含所有景點、餐廳和車站的客製化Google地圖。點擊可進行互動操作。</p>
+                        <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
+                            <iframe src="https://www.google.com/maps/d/embed?mid=1-9fJ_g-w_uX4Z7K7J6r7_Y8H8z0&ehbc=2E312F" width="100%" height="480"></iframe>
+                        </div>
+                    </div>
+                    <div class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
+                         <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">🗣️ 實用日語</h3>
+                         <div class="overflow-x-auto">
+                            <table id="phrasebook-table" class="w-full text-left">
+                                <thead class="bg-[#f1eadc]">
+                                    <tr>
+                                        <th class="p-3 font-semibold text-sm text-stone-700">類別</th>
+                                        <th class="p-3 font-semibold text-sm text-stone-700">中文</th>
+                                        <th class="p-3 font-semibold text-sm text-stone-700">日文 (羅馬拼音)</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <h3 class="text-2xl font-bold mt-8 mb-4 text-[#a4907c]">🎫 預約總覽</h3>
+                         <div id="reservations" class="space-y-3 text-stone-700"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <script>
-        const proposalData = {
-            skyline: [
-                { id: 'x-the-sky', name: '釜山 X the Sky', icon: '🔭', desc: '在韓國第二高樓的觀景餐廳，以360度全景為背景，透過專業策劃服務執行。', scores: { budget: 3, privacy: 3, surprise: 3, planning: 3, uniqueness: 3 } },
-                { id: 'signiel-hotel', name: 'Signiel 尊榮套房', icon: '💎', desc: '在釜山最奢華酒店的套房內，享受極致的私密性與客製化佈置，創造專屬的空中聖殿。', scores: { budget: 2, privacy: 5, surprise: 3, planning: 2, uniqueness: 2 } },
-                { id: 'park-hyatt', name: 'Park Hyatt 餐廳', icon: '🥂', desc: '直面廣安大橋的標誌性景觀，提供一站式求婚套餐，是便捷且浪漫的奢華之選。', scores: { budget: 3, privacy: 2, surprise: 2, planning: 5, uniqueness: 2 } },
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const itineraryData = {
+        1: [
+            { time: '07:30', icon: '✈️', title: '桃園國際機場 (CI154)', desc: '05:00於第二航廈集合，07:30起飛。' },
+            { time: '11:20', icon: '🛬', title: '抵達中部國際機場', desc: '第一航廈。預計出關需30-60分鐘。' },
+            { time: '12:00', icon: '🍴', title: '午餐：みそかつ 矢場とん (備案)', desc: '位於第一航廈4樓Sky Town。若人潮不多可在此用餐。' },
+            { time: '13:00', icon: '🛍️', title: '機場小逛', desc: '4樓有吉卜力周邊「風の小道」和扭蛋專區。' },
+            { time: '14:00', icon: '🚆', title: '前往市區', desc: '從機場搭乘名鐵空港線，經「金山」站轉乘地鐵至「上前津」站。' },
+            { time: '15:30', icon: '🏠', title: 'Airbnb 入住', desc: '位於上前津站附近，緊鄰大須商店街。' },
+            { time: '16:00', icon: '⛩️', title: '三輪神社 (兔子神社)', desc: '以可愛的兔子石像和獨特的御朱印聞名。可先將御朱印帳交給社務所後再逛街。', image: 'https://www.lemon8-app.com/v3/image/7297936868321362438_d20775d7-f076-4660-bf64-b9b59623e1ca?region=jp' },
+            { time: '17:30', icon: '⛩️', title: '大須觀音', desc: '日本三大觀音之一，大須地區的信仰中心。' , image: 'https://www.sakaepark.co.jp/db_image/cl_shop/13/image4.jpg'},
+            { time: '18:30', icon: '🌃', title: '深入大須商店街', desc: '晚餐可選「大須鮨」或「六三六拉麵」。別錯過「青柳總本家」的青蛙饅頭。' },
+            { time: '21:00', icon: '🛒', title: '超市採購', desc: '返回住處前，採買宵夜與飲品。' }
+        ],
+        2: [
+            { time: '08:45', icon: '🚆', title: '出發前往吉卜力公園', desc: '從「上前津」出發，經「栄」轉車，在「愛・地球博記念公園」站下車。' },
+            { time: '10:00', icon: '🌳', title: '吉卜力公園探索', desc: '核心是「吉卜力大倉庫」，注意票券上的指定入場時段。與無臉男合照是必做之事！', image: 'https://ghibli-park.jp/site/img/about/daisouko/img_daisouko_sec03_ph02.webp' },
+            { time: '13:30', icon: '➡️', title: '離開公園', desc: '準備返回市中心，開啟下午的都會之旅。' },
+            { time: '15:00', icon: '🛍️', title: '榮商圈深度探索', desc: '從「栄」站開始，整合所有購物行程。目標包含PARCO、松坂屋(寶可夢中心)、Onitsuka Tiger等。' },
+            { time: '19:30', icon: '🥩', title: '晚餐：飛騨牛一頭家 馬喰一代 (建議)', desc: '將原第四天的晚餐計畫移至此日，動線完美契合。' },
+            { time: '20:00', icon: '🗼', title: '中部電力 MIRAI TOWER (名古屋電視塔)', desc: '登上名古屋地標，欣賞璀璨的城市夜景。', image: 'https://nicomap.net/wp-content/uploads/2021/04/nagoya-tv-tower-hisaya-oodori-park-1.jpg' },
+            { time: '21:00', icon: '🌌', title: '漫步綠洲21', desc: '在未來感的「水之宇宙船」上散步，拍攝電視塔的經典角度。', image: 'https://www.sakaepark.co.jp/wp-content/uploads/2021/09/oasis21_view_05.jpg' }
+        ],
+        3: [
+            { time: '08:00', icon: '🍞', title: '早餐：Tsubame Bread & Milk', desc: '品嚐名古屋特色的小倉紅豆吐司。注意招牌歐姆蛋三明治11:00後才供應。' },
+            { time: '09:00', icon: '👘', title: '和服體驗：着物レンタルVASARA', desc: '於名古屋車站前店進行和服挑選與著裝。' },
+            { time: '10:15', icon: '🏯', title: '名古屋城 & 本丸御殿', desc: '穿著和服漫步。參觀重點是金碧輝煌的本丸御殿。注意：天守閣目前不開放。', image: 'https://www.nagoyajo.city.nagoya.jp/asset/img/learn/property/honmaru/pic_honmaru_01.jpg' },
+            { time: '12:00', icon: '🔄', title: '歸還和服', desc: '返回VASARA店家。' },
+            { time: '12:30', icon: '🍴', title: '午餐：人形町今半 (已預約)', desc: '在Midland Square 41樓享受頂級壽喜燒與城市景觀。', image: 'https://restaurant.imahan.com/wp-content/uploads/2021/04/img_sukiyaki_01.jpg' },
+            { time: '14:00', icon: '🛍️', title: '名古屋車站周邊購物', desc: '目標包含Disney Store、Bic Camera及Échiré奶油專櫃。' },
+            { time: '21:30', icon: '🛒', title: '宵夜採買', desc: '返回住宿前，在便利店或超市進行最後補給。' }
+        ],
+        4: [
+            { time: '09:40', icon: '🚆', title: '前往熱田神宮', desc: '從「上前津」搭乘名鐵至「神宮前」站。' },
+            { time: '10:00', icon: '⛩️', title: '熱田神宮參拜', desc: '探索供奉草薙神劍的莊嚴神域，感受千年楠木的能量。', image: 'https://www.atsutajingu.or.jp/jingu/cms/wp-content/uploads/2020/09/img_shrines_01.jpg' },
+            { time: '10:30', icon: '📝', title: '鰻魚飯登記 (關鍵任務!)', desc: '派一位成員先到「あつた蓬莱軒 本店」現場登記，領取指定用餐時間。本店不接受預約！' },
+            { time: '12:00', icon: '🍴', title: '午餐：あつた蓬莱軒 本店', desc: '品嚐名古屋名物「ひつまぶし」鰻魚飯三吃的極致美味。', image: 'https://www.houraiken.com/img/hitsumabushi/img_hitsumabushi_01.jpg' },
+            { time: '13:30', icon: '🔄', title: '返回大須區域', desc: '搭乘地鐵名城線返回「上前津」站。' },
+            { time: '15:00', icon: '🍵', title: '大須の森カフェ コダマ (已預約)', desc: '享受期待已久的森林系咖啡廳。重要：僅接受現金支付！', image: 'https://s3-ap-northeast-1.amazonaws.com/rose-techno/production/notes/images/000/017/632/original.jpeg?1687612711' },
+            { time: '16:30', icon: '🤖', title: '大須深度探索：MANDARAKE', desc: '在動漫與玩具的寶庫中尋寶。店家12:00才開門，此時段正好。' }
+        ],
+        5: [
+            { time: '07:30', icon: '짐', title: '整理行李 & 退房', desc: '完成Airbnb退房手續。' },
+            { time: '08:45', icon: '🚆', title: '前往中部國際機場', desc: '從「上前津」出發，踏上歸途。' },
+            { time: '10:00', icon: '🎁', title: '伴手禮最終任務', desc: '主攻第一航廈4樓的「えびせんべいの里」(蝦餅之里)，補齊所有購物清單。', image: 'http://www.ebisato.co.jp/shop/images/centrea_photo01.jpg' },
+            { time: '12:20', icon: '🛫', title: '歸程 (CI155)', desc: '航班預計起飛，結束愉快的名古屋之旅。' }
+        ]
+    };
+
+    const budgetData = {
+        labels: ['吉卜力公園門票', '人形町今半', 'Airbnb住宿'],
+        datasets: [{
+            label: '主要共同支出 (JPY)',
+            data: [14650, 21650, 41500],
+            backgroundColor: [
+                'rgba(164, 144, 124, 0.6)',
+                'rgba(200, 182, 166, 0.6)',
+                'rgba(241, 234, 220, 0.8)',
             ],
-            spectacle: [
-                { id: 'drone-show', name: '客製化無人機秀', icon: '🚀', desc: '一場雄心壯志的夢想，由官方表演公司UVify打造，但成本極其高昂，更偏向概念性。', scores: { budget: 1, privacy: 4, surprise: 5, planning: 1, uniqueness: 5 } },
-                { id: 'movie-proposal', name: '電影般的宣言', icon: '🎬', desc: '在私人電影院或求婚咖啡館播放您們的愛情故事影片，情感衝擊力強，兼具性價比。', scores: { budget: 5, privacy: 4, surprise: 4, planning: 4, uniqueness: 4 } },
+            borderColor: [
+                'rgba(164, 144, 124, 1)',
+                'rgba(200, 182, 166, 1)',
+                'rgba(241, 234, 220, 1)',
             ],
-            ruse: [
-                { id: 'aquarium', name: '水底的驚喜', icon: '🐠', desc: '在SEA LIFE水族館，由潛水員在水中展開求婚標語，創造經典且視覺震撼的驚喜。', scores: { budget: 4, privacy: 2, surprise: 5, planning: 2, uniqueness: 4 } },
-                { id: 'workshop', name: '工匠的巧計', icon: '💍', desc: '將求婚隱藏在香水或戒指製作等手工課程的最終環節，是出其不意的終極計謀。', scores: { budget: 5, privacy: 4, surprise: 5, planning: 3, uniqueness: 5 } },
-                { id: 'yacht', name: '私密的航行', icon: '🛥️', desc: '在溫暖的私人遊艇船艙內求婚，窗外是璀璨的冬夜海景，將天氣變為浪漫的催化劑。', scores: { budget: 3, privacy: 4, surprise: 2, planning: 5, uniqueness: 3 } },
-            ]
-        };
+            borderWidth: 1
+        }]
+    };
+    
+    const budgetTableData = [
+        { item: '吉卜力公園門票', p1: '2930', p2: '', p3: '2930', p4: '1465', p5: '2930' },
+        { item: '人形町今半', p1: '7000', p2: '3500', p3: '4650', p4: '3500', p5: '' },
+        { item: 'Airbnb', p1: '13800', p2: '7000', p3: '13800', p4: '6900', p5: '' },
+    ];
 
-        const allProposals = [].concat(...Object.values(proposalData));
+    const checklistData = {
+        carryon: [
+            { item: '護照', checked: true },
+            { item: '日幣現金', checked: true },
+            { item: '錢包/證件', checked: true },
+            { item: '手機', checked: true },
+            { item: '行動電源', checked: true },
+            { item: '各式充電器與線材', checked: false },
+            { item: '藥品', checked: false, note: '保留原包裝或附證明' },
+            { item: '機票與行程確認單', checked: true },
+            { item: '水壺', checked: false, note: '安檢時需清空' },
+            { item: '輕便雨具', checked: false },
+        ],
+        checked: [
+            { item: '盥洗用品', checked: false, note: '液體隨身需<100ml' },
+            { item: '換洗衣物', checked: false },
+            { item: '購物袋/環保袋', checked: false },
+            { item: '自拍棒', checked: false },
+            { item: '刀片刮鬍刀', checked: false },
+            { item: '行李秤', checked: false },
+            { item: '筆', checked: false },
+        ]
+    };
 
-        const cardContainer = document.getElementById('proposal-cards');
-        const navContainer = document.getElementById('theme-nav');
-        const checkboxContainer = document.getElementById('checkbox-container');
-        let proposalChart;
+    const phrasebookData = [
+        { category: '通用', ch: '這個', jp: 'これ (Kore)' },
+        { category: '通用', ch: '多少錢？', jp: 'いくらですか？ (Ikura desu ka?)' },
+        { category: '通用', ch: '我要這個。', jp: 'これをください。 (Kore o kudasai.)' },
+        { category: '餐廳', ch: '推薦什麼？', jp: 'おすすめは何ですか？ (Osusume wa nan desu ka?)' },
+        { category: '餐廳', ch: '結帳。', jp: 'お会計をお願いします。 (Okaikei o onegaishimasu.)' },
+        { category: '人數', ch: '1人/2人/3人', jp: 'ひとり/ふたり/さんにん (hitori/futari/sannin)' },
+    ];
+    
+    const reservationData = [
+        { icon: '✈️', title: '航班', detail: 'CI154 (去) / CI155 (回)' },
+        { icon: '🏠', title: '住宿', detail: 'Airbnb 上前津 (9/17 - 9/21)' },
+        { icon: '🍴', title: '人形町今半', detail: '9/19 (五) 12:30，已預約' },
+        { icon: '🍵', title: '大須の森カフェ', detail: '9/20 (六) 15:00，已預約 (僅收現金)' },
+        { icon: '🌳', title: '吉卜力公園', detail: '9/18 (四) 10:00，注意大倉庫入場時間' },
+    ];
 
-        const chartLabels = {
-            budget: '預算 (越高越省)',
-            privacy: '私密性',
-            surprise: '驚喜指數',
-            planning: '規劃難度 (越高越易)',
-            uniqueness: '獨特性'
-        };
+    const mainNav = document.getElementById('main-nav');
+    const contentSections = document.querySelectorAll('.content-section');
+    const dayTabs = document.getElementById('day-tabs');
+    const itineraryContent = document.getElementById('itinerary-content');
 
-        const renderCards = (theme) => {
-            cardContainer.innerHTML = '';
-            const themeData = proposalData[theme];
-            themeData.forEach(p => {
-                cardContainer.innerHTML += `
-                    <div class="card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center">
-                        <div class="text-5xl mb-4">${p.icon}</div>
-                        <h3 class="text-2xl font-bold mb-2 text-gray-800">${p.name}</h3>
-                        <p class="text-gray-600 flex-grow">${p.desc}</p>
+    function switchContent(targetId) {
+        contentSections.forEach(section => {
+            section.classList.toggle('hidden', section.id !== `content-${targetId}`);
+        });
+        mainNav.querySelectorAll('button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.target === targetId);
+        });
+    }
+
+    function renderItinerary(day) {
+        const events = itineraryData[day] || [];
+        itineraryContent.innerHTML = events.map(event => `
+            <div class="timeline-item relative flex items-start pb-8">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#f1eadc] flex items-center justify-center text-xl z-10">
+                    ${event.icon}
+                </div>
+                <div class="ml-4 flex-grow">
+                    <p class="text-sm text-stone-500">${event.time}</p>
+                    <h4 class="font-bold text-lg text-[#8d7b68]">${event.title}</h4>
+                    <p class="mt-1 text-stone-600">${event.desc}</p>
+                    ${event.image ? `<img src="${event.image}" alt="${event.title}" class="mt-3 rounded-lg shadow-md max-w-xs w-full h-auto object-cover" onerror="this.style.display='none'"/>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function switchDay(day) {
+        renderItinerary(day);
+        dayTabs.querySelectorAll('button').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.day === day);
+        });
+    }
+
+    mainNav.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            switchContent(e.target.dataset.target);
+        }
+    });
+
+    dayTabs.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            switchDay(e.target.dataset.day);
+        }
+    });
+
+    function renderChecklist() {
+        const carryonContainer = document.getElementById('checklist-carryon');
+        const checkedContainer = document.getElementById('checklist-checked');
+
+        checklistData.carryon.forEach(item => {
+            carryonContainer.innerHTML += `
+                <label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-amber-50 cursor-pointer">
+                    <input type="checkbox" ${item.checked ? 'checked' : ''} class="h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+                    <span class="text-stone-700">${item.item} ${item.note ? `<span class="text-xs text-stone-500">(${item.note})</span>` : ''}</span>
+                </label>`;
+        });
+
+        checklistData.checked.forEach(item => {
+            checkedContainer.innerHTML += `
+                <label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-amber-50 cursor-pointer">
+                    <input type="checkbox" ${item.checked ? 'checked' : ''} class="h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+                    <span class="text-stone-700">${item.item} ${item.note ? `<span class="text-xs text-stone-500">(${item.note})</span>` : ''}</span>
+                </label>`;
+        });
+    }
+    
+    function renderBudgetTable() {
+        const tableBody = document.querySelector('#budget-table tbody');
+        budgetTableData.forEach(row => {
+            tableBody.innerHTML += `
+                <tr class="border-b border-stone-200 hover:bg-stone-50">
+                    <td class="p-3 font-medium">${row.item}</td>
+                    <td class="p-3">${row.p1 || '—'}</td>
+                    <td class="p-3">${row.p2 || '—'}</td>
+                    <td class="p-3">${row.p3 || '—'}</td>
+                    <td class="p-3">${row.p4 || '—'}</td>
+                    <td class="p-3">${row.p5 || '—'}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderPhrasebook() {
+        const tableBody = document.querySelector('#phrasebook-table tbody');
+        phrasebookData.forEach(row => {
+            tableBody.innerHTML += `
+                <tr class="border-b border-stone-200 hover:bg-stone-50">
+                    <td class="p-2 text-sm font-medium text-amber-700">${row.category}</td>
+                    <td class="p-2 text-sm">${row.ch}</td>
+                    <td class="p-2 text-sm">${row.jp}</td>
+                </tr>
+            `;
+        });
+    }
+    
+    function renderReservations() {
+        const container = document.getElementById('reservations');
+        reservationData.forEach(item => {
+            container.innerHTML += `
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">${item.icon}</span>
+                    <div>
+                        <p class="font-semibold">${item.title}</p>
+                        <p class="text-sm text-stone-600">${item.detail}</p>
                     </div>
-                `;
-            });
-        };
+                </div>
+            `;
+        });
+    }
 
-        const renderCheckboxes = () => {
-            checkboxContainer.innerHTML = '<h4 class="text-xl font-bold mb-3 text-gray-700">選擇比較項目：</h4>';
-            allProposals.forEach(p => {
-                checkboxContainer.innerHTML += `
-                    <div class="flex items-center">
-                        <input type="checkbox" id="check-${p.id}" data-id="${p.id}" class="checkbox-input hidden">
-                        <label for="check-${p.id}" class="checkbox-label w-full cursor-pointer border-2 border-gray-200 rounded-lg py-2 px-4">${p.name}</label>
-                    </div>
-                `;
-            });
-        };
-        
-        const updateChart = () => {
-            const selectedIDs = Array.from(document.querySelectorAll('.checkbox-input:checked')).map(cb => cb.dataset.id);
-            
-            const datasets = selectedIDs.map((id, index) => {
-                const proposal = allProposals.find(p => p.id === id);
-                const colors = [
-                    'rgba(234, 179, 168, 0.5)', 
-                    'rgba(141, 123, 120, 0.5)',
-                    'rgba(245, 225, 218, 0.7)',
-                    'rgba(196, 180, 168, 0.5)',
-                    'rgba(173, 156, 147, 0.5)',
-                    'rgba(221, 203, 196, 0.7)',
-                    'rgba(112, 99, 96, 0.5)',
-                    'rgba(237, 218, 208, 0.5)'
-                ];
-                const borderColors = [
-                    'rgba(234, 179, 168, 1)', 
-                    'rgba(141, 123, 120, 1)',
-                    'rgba(245, 225, 218, 1)',
-                    'rgba(196, 180, 168, 1)',
-                    'rgba(173, 156, 147, 1)',
-                    'rgba(221, 203, 196, 1)',
-                    'rgba(112, 99, 96, 1)',
-                    'rgba(237, 218, 208, 1)'
-                ];
-
-                return {
-                    label: proposal.name,
-                    data: Object.values(proposal.scores),
-                    backgroundColor: colors[index % colors.length],
-                    borderColor: borderColors[index % borderColors.length],
-                    borderWidth: 2,
-                    pointBackgroundColor: borderColors[index % borderColors.length],
-                    pointRadius: 4,
-                };
-            });
-
-            proposalChart.data.datasets = datasets;
-            proposalChart.update();
-        };
-
-        const initChart = () => {
-            const ctx = document.getElementById('proposalChart').getContext('2d');
-            proposalChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: Object.values(chartLabels),
-                    datasets: []
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
-                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
-                            pointLabels: {
-                                font: { size: 12, family: "'Noto Sans TC', sans-serif" },
-                                color: '#4A4A4A'
-                            },
-                            ticks: {
-                                beginAtZero: true,
-                                min: 0,
-                                max: 5,
-                                stepSize: 1,
-                                backdropColor: 'rgba(255, 255, 255, 0.75)',
-                                color: '#888'
-                            }
-                        }
+    const ctx = document.getElementById('budgetChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: budgetData,
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#f1eadc'
                     },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: { size: 14, family: "'Noto Sans TC', sans-serif" }
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return '¥' + value.toLocaleString();
+                        }
+                    }
+                },
+                y: {
+                   grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
                             }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.r !== null) {
-                                        label += context.parsed.r;
-                                    }
-                                    return label;
-                                }
+                            if (context.parsed.x !== null) {
+                                label += '¥' + context.parsed.x.toLocaleString();
                             }
+                            return label;
                         }
                     }
                 }
-            });
-        };
-
-        navContainer.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                const theme = e.target.dataset.theme;
-                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
-                renderCards(theme);
             }
-        });
+        }
+    });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            renderCards('skyline');
-            renderCheckboxes();
-            initChart();
-            
-            checkboxContainer.addEventListener('change', (e) => {
-                if(e.target.classList.contains('checkbox-input')) {
-                    updateChart();
-                }
-            });
-        });
+    switchDay('1');
+    renderChecklist();
+    renderBudgetTable();
+    renderPhrasebook();
+    renderReservations();
+});
+</script>
 
-    </script>
 </body>
 </html>
