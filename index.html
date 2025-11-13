@@ -3,456 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>名古屋臭臭之旅 - 互動行程導覽</title>
+    <title>北海道 & 青森：家庭無障礙之旅</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.7.1/chart.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals (Stone, Amber) -->
-    <!-- Application Structure Plan: A single-page application (SPA) designed as a travel dashboard. A fixed top navigation allows users to switch between four main views: '行程總覽' (Itinerary), '預算速覽' (Budget), '行前準備' (Checklist), and '實用資訊' (Info & Map). The itinerary view further uses daily tabs (Day 1-5) for granular control. This structure avoids scrolling through a long document, providing quick, task-oriented access to all trip information in a centralized, interactive format, which is far more user-friendly than a static report. -->
-    <!-- Visualization & Content Choices: 
-        - Itinerary: Presented as an interactive vertical timeline (HTML/CSS) with icons for different activity types to improve scannability. Goal: Organize & Inform. Interaction: Daily tabs to filter content. Justification: Chronological and intuitive for a travel plan.
-        - Budget: A horizontal bar chart (Chart.js/Canvas) visualizes major expenses from the '錢錢.csv' file. Goal: Compare & Inform. Interaction: Tooltips on hover. Justification: Provides an immediate, clear comparison of cost distribution, which is more impactful than a simple table.
-        - Checklist: An interactive checklist (HTML forms) from '行李清單.csv'. Goal: Organize & Task Management. Interaction: Clickable checkboxes. Justification: Turns a passive list into a functional tool.
-        - Map & Info: An embedded Google Map and reference tables. Goal: Inform & Navigate. Interaction: Standard map controls. Justification: Provides essential geographical context and quick reference data.
-    -->
+    <!-- Chosen Palette: Warm Neutrals (Beige/Ivory, Soft Brown, Gentle Teal, Warm Terracotta) -->
+    <!-- Application Structure Plan: SPA with top navigation (Home, Itinerary, Hotels, Transport, Accessibility). Main interaction is a tabbed interface for "Daily Details" (Day 1, Day 2...). This structure breaks down the complex 9-day plan into manageable, user-selectable chunks, prioritizing the user's need to examine the plan day by day. An overview chart provides a high-level summary. This is more user-friendly than a single, long scrolling document. -->
+    <!-- Visualization & Content Choices: 1. Report Info: 8-9 day trip, Hokkaido & Aomori. Goal: Show time allocation. Viz: Doughnut Chart (Chart.js/Canvas). Interaction: Tooltip on hover. Justification: Provides a quick visual summary of the trip's structure (e.g., 5 days Hokkaido, 4 days Aomori). 2. Report Info: Daily Itinerary. Goal: Present detailed plan. Viz: Tabbed HTML/CSS content blocks. Interaction: Click tabs (Day 1, Day 2...) to show/hide respective content. Justification: Organizes a large amount of text logically, prevents overwhelming the user, supports the designed "day-by-day" exploration flow. 3. Report Info: Accessibility, Hotels, Food. Goal: Provide key details. Viz: Styled HTML cards/lists. Interaction: None, static info display. Justification: Clear, legible presentation of crucial information. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #fdfcf9;
+            background-color: #FFFCF5; /* bg-amber-50 */
+            color: #44403C; /* text-stone-800 */
         }
-        .nav-btn {
-            transition: all 0.3s ease;
+        .nav-link {
+            @apply px-3 py-2 md:px-4 text-stone-700 hover:text-teal-700 rounded-lg transition-colors cursor-pointer;
         }
-        .nav-btn.active {
-            background-color: #8d7b68;
-            color: #ffffff;
-            font-weight: 700;
+        .nav-link.active {
+            @apply bg-teal-700 text-white font-semibold shadow-md;
+        }
+        .content-section {
+            @apply hidden;
+        }
+        .content-section.active {
+            @apply block;
+        }
+        .day-tab {
+            @apply px-3 py-2 text-sm md:px-4 md:py-3 md:text-base text-stone-600 bg-white border border-amber-300 rounded-t-lg cursor-pointer hover:bg-amber-100 transition-colors;
         }
         .day-tab.active {
-            border-color: #a4907c;
-            background-color: #f1eadc;
-            font-weight: 700;
+            @apply bg-teal-700 text-white font-medium border-teal-700;
         }
-        .timeline-item:before {
-            content: '';
-            position: absolute;
-            left: 1.25rem;
-            top: 1.25rem;
-            bottom: -1.25rem;
-            width: 2px;
-            background-color: #e5e7eb;
-            transform: translateX(-50%);
+        .day-content {
+            @apply hidden p-6 bg-white border border-t-0 border-amber-300 rounded-b-lg;
         }
-        .timeline-item:last-child:before {
-            display: none;
+        .day-content.active {
+            @apply block;
         }
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 800px;
+            max-width: 400px;
             margin-left: auto;
             margin-right: auto;
-            height: 400px;
-            max-height: 50vh;
+            height: 300px;
+            max-height: 350px;
         }
         @media (min-width: 768px) {
             .chart-container {
-                height: 500px;
+                height: 350px;
             }
+        }
+        .card {
+            @apply bg-white rounded-lg shadow-lg overflow-hidden transition-shadow hover:shadow-xl;
+        }
+        .badge {
+            @apply inline-block bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-0.5 rounded-full;
+        }
+        .badge-warn {
+            @apply inline-block bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full;
         }
     </style>
 </head>
-<body class="text-stone-800">
+<body class="antialiased">
 
-    <div class="min-h-screen">
-        <header class="bg-[#c8b6a6]/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col sm:flex-row items-center justify-between py-4">
-                    <h1 class="text-2xl font-bold text-stone-900 mb-4 sm:mb-0">名古屋鑑賞家之旅 🍁</h1>
-                    <nav id="main-nav" class="flex flex-wrap justify-center gap-2">
-                        <button data-target="itinerary" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200 active">行程總覽</button>
-                        <button data-target="budget" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200">預算速覽</button>
-                        <button data-target="checklist" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200">行前準備</button>
-                        <button data-target="info" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium bg-white/50 hover:bg-stone-200">實用資訊</button>
-                    </nav>
-                </div>
-            </div>
+    <div class="container mx-auto max-w-7xl px-4 py-6 md:py-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-8 md:mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-800 mb-2">北海道 & 青森：家庭無障礙之旅</h1>
+            <p class="text-base md:text-lg text-stone-600">為您與家人打造的 9 天 8 夜 舒適旅程</p>
         </header>
 
-        <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            <div id="content-itinerary" class="content-section">
-                <div class="mb-6">
-                    <div id="day-tabs" class="flex flex-wrap items-center gap-2 border-b border-stone-200 pb-3">
-                        <button data-day="1" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg active">9/17 (三) 抵達日</button>
-                        <button data-day="2" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/18 (四) 奇幻日</button>
-                        <button data-day="3" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/19 (五) 文化日</button>
-                        <button data-day="4" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/20 (六) 探索日</button>
-                        <button data-day="5" class="day-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:border-amber-500 hover:bg-amber-50 rounded-t-lg">9/21 (日) 歸程日</button>
-                    </div>
-                </div>
-                <div id="itinerary-content"></div>
-            </div>
+        <!-- Navigation -->
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8 md:mb-10" id="main-nav">
+            <a class="nav-link active" data-content="home">行程總覽</a>
+            <a class="nav-link" data-content="itinerary">每日詳情</a>
+            <a class="nav-link" data-content="accommodation">住宿建議</a>
+            <a class="nav-link" data-content="transport">交通與餐食</a>
+            <a class="nav-link" data-content="accessibility">無障礙筆記</a>
+        </nav>
 
-            <div id="content-budget" class="content-section hidden">
-                <h2 class="text-3xl font-bold mb-6 text-[#8d7b68]">預算速覽</h2>
-                <div class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
-                    <p class="mb-6 text-stone-600">此圖表顯示了本次旅行中已知的幾項主要共同支出（以日圓計），幫助您快速了解費用分佈。詳細的個人分攤費用請參考下方的表格。</p>
-                    <div class="chart-container">
-                        <canvas id="budgetChart"></canvas>
-                    </div>
-                    <h3 class="text-2xl font-bold mt-12 mb-4 text-[#a4907c]">詳細費用分攤 (JPY)</h3>
-                    <div class="overflow-x-auto">
-                        <table id="budget-table" class="w-full text-left border-collapse">
-                            <thead class="bg-[#f1eadc]">
-                                <tr>
-                                    <th class="p-3 font-semibold text-sm text-stone-700">項目</th>
-                                    <th class="p-3 font-semibold text-sm text-stone-700">智盈(2)</th>
-                                    <th class="p-3 font-semibold text-sm text-stone-700">哲綸</th>
-                                    <th class="p-3 font-semibold text-sm text-stone-700">証傑(2)</th>
-                                    <th class="p-3 font-semibold text-sm text-stone-700">傑瑀</th>
-                                    <th class="p-3 font-semibold text-sm text-stone-700">泓維(2)</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="content-checklist" class="content-section hidden">
-                <h2 class="text-3xl font-bold mb-6 text-[#8d7b68]">行前準備互動清單</h2>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div id="checklist-carryon" class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
-                        <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">🎒 隨身行李</h3>
-                    </div>
-                    <div id="checklist-checked" class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
-                        <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">🧳 托運行李</h3>
-                    </div>
-                </div>
-            </div>
-
-            <div id="content-info" class="content-section hidden">
-                <h2 class="text-3xl font-bold mb-6 text-[#8d7b68]">實用資訊 & 地圖</h2>
-                <div class="grid lg:grid-cols-2 gap-8">
-                    <div class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
-                        <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">📍 旅程地圖</h3>
-                        <p class="mb-4 text-stone-600">這是一份包含所有景點、餐廳和車站的客製化Google地圖。點擊可進行互動操作。</p>
-                        <div class="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
-                            <iframe src="https://www.google.com/maps/d/embed?mid=1-9fJ_g-w_uX4Z7K7J6r7_Y8H8z0&ehbc=2E312F" width="100%" height="480"></iframe>
+        <!-- Main Content -->
+        <main>
+            <!-- Home / Overview -->
+            <section id="home" class="content-section active">
+                <div class="bg-white rounded-lg shadow-xl p-5 md:p-8">
+                    <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">旅程核心規劃</h2>
+                    <p class="text-stone-700 mb-6 text-base md:text-lg leading-relaxed">
+                        這次 9 天 8 夜的旅程，是專為包含需使用輪椅的父親所設計的。我們將重點放在<strong class="text-teal-800">舒適的步調</strong>、<strong class="text-teal-800">無障礙設施</strong>以及<strong class="text-teal-800">深度的在地體驗</strong>。全程將安排<strong class="font-semibold">福祉包車（無障礙計程車）</strong>，確保景點間的移動輕鬆無憂。行程已包含您指定的<strong class="font-semibold">洞爺湖</strong>，並會安排能欣賞絕佳湖景的無障礙飯店。
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4">行程重點參數</h3>
+                            <ul class="space-y-3 text-sm md:text-base">
+                                <li class="flex items-center">
+                                    <span class="text-xl mr-3">👨‍👩‍👧‍👦</span>
+                                    <span class="text-stone-700"><strong>成員：</strong> 4 位 (包含 1 位輪椅使用者)</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="text-xl mr-3">📅</span>
+                                    <span class="text-stone-700"><strong>天數：</strong> 9 天 8 夜</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="text-xl mr-3">♿</span>
+                                    <span class="text-stone-700"><strong>核心考量：</strong> 全程無障礙、步調放鬆</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="text-xl mr-3">✈️</span>
+                                    <span class="text-stone-700"><strong>航班：</strong> 優先選擇長榮航空 (TPE ⇌ CTS / AOJ)</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="text-xl mr-3">🚗</span>
+                                    <span class="text-stone-700"><strong>交通：</strong> 全程預約福祉包車</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="text-xl mr-3">🦀</span>
+                                    <span class="text-stone-700"><strong>美食：</strong> 包含螃蟹會席料理</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4 text-center">行程時間分配</h3>
+                            <div class="chart-container">
+                                <canvas id="tripChart"></canvas>
+                            </div>
+                            <p class="text-center text-stone-600 mt-2">行程將均衡分配在北海道與青森地區。</p>
                         </div>
                     </div>
-                    <div class="bg-white/80 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
-                         <h3 class="text-2xl font-bold mb-4 text-[#a4907c]">🗣️ 實用日語</h3>
-                         <div class="overflow-x-auto">
-                            <table id="phrasebook-table" class="w-full text-left">
-                                <thead class="bg-[#f1eadc]">
-                                    <tr>
-                                        <th class="p-3 font-semibold text-sm text-stone-700">類別</th>
-                                        <th class="p-3 font-semibold text-sm text-stone-700">中文</th>
-                                        <th class="p-3 font-semibold text-sm text-stone-700">日文 (羅馬拼音)</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                </div>
+            </section>
+
+            <!-- Daily Itinerary -->
+            <section id="itinerary" class="content-section">
+                <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">每日詳細行程</h2>
+                
+                <!-- Day Tabs -->
+                <div class="flex flex-wrap justify-center gap-1 mb-0" id="day-tabs">
+                    <button class="day-tab active" data-day="day1">Day 1</button>
+                    <button class="day-tab" data-day="day2">Day 2</button>
+                    <button class="day-tab" data-day="day3">Day 3</button>
+                    <button class="day-tab" data-day="day4">Day 4</button>
+                    <button class="day-tab" data-day="day5">Day 5</button>
+                    <button class="day-tab" data-day="day6">Day 6</button>
+                    <button class="day-tab" data-day="day7">Day 7</button>
+                    <button class="day-tab" data-day="day8">Day 8</button>
+                    <button class="day-tab" data-day="day9">Day 9</button>
+                </div>
+
+                <!-- Day 1 Content -->
+                <div id="day1" class="day-content active">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 1: 抵達札幌，城市初探</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 桃園機場 (TPE) → 新千歲機場 (CTS) → 札幌市區</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>搭乘長榮航空抵達新千歲機場 (CTS)。</li>
+                        <li>機場內有無障礙洗手間，出關流程順暢。</li>
+                        <li>預約的福祉包車司機將在出口迎接。</li>
+                        <li>前往札幌市區飯店辦理入住（推薦：札幌JR塔日航酒店，與車站共構，移動方便）。</li>
+<li>傍晚：前往<strong class="font-semibold">JR塔展望室 T38</strong>（電梯直達，輪椅可），欣賞札幌夜景。</li>
+                        <li>晚餐：<strong class="font-semibold">螃蟹本家 (駅前本店)</strong>，預約包廂座位，品嚐螃蟹會席料理（請預先告知有輪椅使用者）。</li>
+                        <li><span class="badge-warn">無障礙提示：</span> 機場至飯店全程無縫接軌。餐廳請務必預訂電梯可達的樓層或一樓座位。</li>
+                    </ul>
+                </div>
+
+                <!-- Day 2 Content -->
+                <div id="day2" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 2: 札幌經典 & 浪漫小樽</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 札幌市區 → 小樽市區</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>上午：包車遊覽札幌市區。</li>
+                        <li><strong class="font-semibold">大通公園</strong>：路面平坦，適合輪椅散步，欣賞電視塔外觀。</li>
+                        <li><strong class="font-semibold">北海道廳舊本廳舍</strong>：外部庭園平坦，建築外觀優美（內部部分區域可能有限制）。</li>
+                        <li><strong class="font-semibold">時計台</strong>：於外部拍照（內部為木造階梯，輪椅難以進入）。</li>
+                        <li>中午：於札幌市區享用湯咖哩（選擇一樓或有電梯的店家）。</li>
+                        <li>下午：搭乘包車前往小樽（車程約 1 小時）。</li>
+                        <li>傍晚：遊覽<strong class="font-semibold">小樽運河</strong>，運河沿岸步道平坦，風景極佳。</li>
+                        <li>晚餐：於小樽享用壽司或海鮮丼飯（選擇無障礙友善餐廳）。</li>
+                        <li>住宿：小樽 (例如：Hotel Nord Otaru，部分房型有無障礙設施)。</li>
+                    </ul>
+                </div>
+
+                <!-- Day 3 Content -->
+                <div id="day3" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 3: 洞爺湖 - 湖光山色</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 小樽 → 洞爺湖</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>上午：包車前往<strong class="font-semibold">洞爺湖</strong>（車程約 2 小時）。</li>
+                        <li>沿途可在休息站（如：中山峠）稍作休息，欣賞風景。</li>
+                        <li>中午：抵達洞爺湖，享用午餐。</li>
+                        <li>下午：入住指定飯店（<strong class="font-semibold">洞爺湖景乃之風度假酒店</strong>或<strong class="font-semibold">洞爺湖太陽宮殿度假酒店</strong>），指定湖景房與無障礙房型。</li>
+                        <li>在飯店內稍作休息，或至飯店外的<strong class="font-semibold">湖畔步道</strong>散步（步道平坦）。</li>
+                        <li>晚餐：於飯店內享用自助餐或會席料理。</li>
+                        <li>晚上：若體力允許，可於房間陽台欣賞洞爺湖的煙火（夏季限定）。</li>
+                        <li><span class="badge">住宿重點：</span> 乃之風 (Nonokaze) 的無障礙房型 (Universal Room) 評價極高，請務必提早預訂。</li>
+                    </ul>
+                </div>
+
+                <!-- Day 4 Content -->
+                <div id="day4" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 4: 洞爺湖深度 & 前往函館</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 洞爺湖 → 函館</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>上午：享受飯店的溫泉（若有無障礙湯屋或家族風呂）。</li>
+                        <li>搭乘包車前往<strong class="font-semibold">有珠山纜車</strong>。</li>
+                        <li><span class="badge-warn">無障礙提示：</span> 纜車站有電梯，山頂展望台有無障礙步道，可遠眺洞爺湖與昭和新山，非常推薦。</li>
+                        <li>中午：於洞爺湖周邊用餐。</li>
+                        <li>下午：搭乘包車前往函館（車程約 2.5 - 3 小時）。</li>
+                        <li>傍晚：入住函館飯店（推薦：La Vista 函館灣，鄰近灣區）。</li>
+                        <li>晚餐：於<strong class="font-semibold">金森紅磚倉庫群</strong>附近享用晚餐（倉庫群周邊路面平坦）。</li>
+                    </ul>
+                </div>
+
+                <!-- Day 5 Content -->
+                <div id="day5" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 5: 函館 - 歷史與夜景</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 函館市區</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>上午：包車前往<strong class="font-semibold">五稜郭塔</strong>。</li>
+                        <li>五稜郭塔有電梯直達展望台，可俯瞰星型城郭，全程無障礙。</li>
+                        <li><strong class="font-semibold">五稜郭公園</strong>：公園內步道多為平坦碎石路，輪椅推行需稍加留意，但主要區域可達。</li>
+                        <li>中午：品嚐函館鹽味拉麵（選擇一樓店家）。</li>
+                        <li>下午：遊覽<strong class="font-semibold">元町地區</strong>。</li>
+                        <li><span class="badge-warn">無障礙提示：</span> 元町多斜坡（坂道），包車可直接開至景點（如教會群）門口下車拍照，不需辛苦推輪椅上坡。</li>
+                        <li>傍晚：<strong class="font-semibold">函館山夜景</strong>。</li>
+                        <li>搭乘包車可<strong class="font-semibold">直接攻頂</strong>（特定時段交通管制，包車通常不受限，請司機確認），或搭乘纜車（纜車站有電梯，但旺季人多擁擠）。包車直達山頂對輪椅使用者最為友善。</li>
+                        <li>晚餐：於函館市區享用。</li>
+                    </ul>
+                </div>
+
+                <!-- Day 6 Content -->
+                <div id="day6" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 6: 跨越津輕海峽，前進青森</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 函館 → 青森</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>上午：<strong class="font-semibold">函館朝市</strong>。</li>
+                        <li>朝市內部走道平坦，可輕鬆逛街、品嚐海鮮。</li>
+                        <li>中午：於朝市享用海鮮丼飯。</li>
+                        <li>下午：包車前往「新函館北斗」站。</li>
+                        <li>搭乘<strong class="font-semibold">北海道新幹線</strong>前往「新青森」站（車程約 1 小時）。</li>
+                        <li><span class="badge">交通重點：</span> 新幹線有無障礙座位（輪椅席），請務必提早預訂。車站均有電梯和無障礙洗手間。</li>
+                        <li>抵達新青森站，與青森的福祉包車司機會合。</li>
+                        <li>前往青森市區飯店辦理入住（推薦：青森JAL城市酒店）。</li>
+                        <li>晚餐：於飯店附近享用。</li>
+                    </ul>
+                </div>
+
+                <!-- Day 7 Content -->
+                <div id="day7" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 7: 青森 - 睡魔與蘋果</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 青森市區</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>上午：包車前往<strong class="font-semibold">睡魔之家 WA RASSE</strong>。</li>
+                        <li>館內全程無障礙，可近距離欣賞巨大的睡魔燈籠，非常震撼。</li>
+                        <li>中午：於 WA RASSE 旁的<strong class="font-semibold">A-FACTORY</strong> 用餐。</li>
+                        <li>A-FACTORY 是一樓平房建築，販售蘋果西打酒與各種伴手禮，動線良好。</li>
+                        <li>下午：<strong class="font-semibold">青森縣立美術館</strong>（若對藝術有興趣）。</li>
+                        <li><span class="badge">無障礙提示：</span> 美術館為現代建築，無障礙設施完善，可欣賞奈良美智的「青森犬」。</li>
+                        <li>傍晚：返回飯店休息。</li>
+                        <li>晚餐：品嚐青森鄉土料理。</li>
+                    </ul>
+                </div>
+
+                <!-- Day 8 Content -->
+                <div id="day8" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 8: 青森 - 繩文歷史或奧入瀨溪</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 青森市郊</p>
+                    <p class="text-stone-700 mb-4 text-sm md:text-base"><strong>方案A (輕鬆歷史)：</strong></p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700 mb-4">
+                        <li>包車前往<strong class="font-semibold">三內丸山遺跡</strong>。</li>
+                        <li>園區廣大，有無障礙步道通往主要展館與大型立柱建築。</li>
+                        <li>繩文時遊館（博物館）內部設施完善。</li>
+                    </ul>
+                    <p class="text-stone-700 mb-4 text-sm md:text-base"><strong>方案B (自然景觀 - 需確認體力)：</strong></p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>包車前往<strong class="font-semibold">奧入瀨溪流</strong>（車程較遠，約 1.5 - 2 小時）。</li>
+                        <li><span class="badge-warn">無障礙提示：</span> 溪流沿岸步道並非完全平坦，輪椅難以全程行走。</li>
+                        <li><strong class="font-semibold">建議玩法：</strong> 採用「車覽」，請包車司機在幾個最著名的景點（如：銚子大瀑布、阿修羅之流）的停車處停靠，下車於觀景台欣賞。</li>
+                    </ul>
+                    <p class="text-stone-700 mt-4">建議選擇方案A，對輪椅使用者較為輕鬆。
+                </div>
+
+                <!-- Day 9 Content -->
+                <div id="day9" class="day-content">
+                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 9: 滿載而歸</h3>
+                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 青森市區 → 青森機場 (AOJ) → 桃園 (TPE)</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                        <li>上午：在飯店悠閒享用早餐，整理行李。</li>
+                        <li>可至飯店附近的商店進行最後的採買。</li>
+                        <li>中午：享用在青森的最後一餐。</li>
+                        <li>下午：搭乘福祉包車前往青森機場 (AOJ)。</li>
+                        <li>青森機場規模不大，有無障礙設施。</li>
+                        <li>搭乘長榮航空直飛航班返回桃園 (TPE)，結束愉快的家庭之旅。</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Accommodation -->
+            <section id="accommodation" class="content-section">
+                <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">住宿建議 (無障礙優先)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <div class="card">
+                        <img src="https://placehold.co/600x400/319795/FFFFFF?text=洞爺湖景" alt="洞爺湖" class="w-full h-48 object-cover">
+                        <div class="p-5 md:p-6">
+                            <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-2">洞爺湖景乃之風度假酒店</h3>
+                            <span class="badge mb-3">洞爺湖 (首選)</span>
+                            <p class="text-stone-700 mb-4 text-sm md:text-base">滿足您「湖景第一排」的需求。這間飯店擁有<strong class="font-semibold">頂級的湖景</strong>，並且提供專門的<strong class="font-semibold">無障礙房型 (Universal Room)</strong>，房間寬敞且浴室設施完善。請務必提早預訂此房型。</p>
                         </div>
-                        <h3 class="text-2xl font-bold mt-8 mb-4 text-[#a4907c]">🎫 預約總覽</h3>
-                         <div id="reservations" class="space-y-3 text-stone-700"></div>
+                    </div>
+
+                    <div class="card">
+                        <img src="https://placehold.co/600x400/4A5568/FFFFFF?text=札幌市景" alt="札幌" class="w-full h-48 object-cover">
+                        <div class="p-5 md:p-6">
+                            <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-2">札幌JR塔日航酒店</h3>
+                            <span class="badge mb-3">札幌</span>
+                            <p class="text-stone-700 mb-4 text-sm md:text-base">與 JR 札幌站共構，交通便利性無可挑剔。飯店有無障礙房型，且通往車站、百貨公司均有<strong class="font-semibold">室內無障礙通道</strong>，不受天氣影響，非常適合輪椅使用者。</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <img src="https://placehold.co/600x400/9B2C2C/FFFFFF?text=函館灣景" alt="函館" class="w-full h-48 object-cover">
+                        <div class="p-5 md:p-6">
+                            <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-2">La Vista 函館灣</h3>
+                            <span class="badge mb-3">函館</span>
+                            <p class="text-stone-700 mb-4 text-sm md:text-base">位於金森紅磚倉庫旁，地點絕佳。飯店有無障礙房型，且以<strong class="font-semibold">豐盛的早餐</strong>聞名。周邊景點（灣區）路面平坦，方便散步。</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Transport & Dining -->
+            <section id="transport" class="content-section">
+                <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">交通與餐食重點</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-xl p-5 md:p-6">
+                        <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4 flex items-center">
+                            <span class="text-3xl mr-3">🚗</span> 交通：福祉包車
+                        </h3>
+                        <p class="text-stone-700 mb-4 text-sm md:text-base">考量父親的狀況，<strong class="font-semibold">全程使用「福祉包車」是最佳選擇</strong>。這種車輛配有升降梯或斜坡板，可讓輪椅直接上下車，免去換乘的辛勞。</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                            <li><strong class="font-semibold">預訂：</strong> 必須提早（至少一個月前）預訂。可透過日本當地的包車公司網站或專業旅遊平台預訂。</li>
+                            <li><strong class="font-semibold">車種：</strong> 預訂時請說明輪椅尺寸，以及包含輪椅在內的總人數與行李件數，以確保安排合適車輛 (如 Toyota Alphard Welcab 或 Hiace Welcab)。</li>
+                            <li><strong class="font-semibold">跨區：</strong> 函館到青森的移動，推薦搭乘新幹線（無障礙座位），比包車拉車更快速舒適。</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-xl p-5 md:p-6">
+                        <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4 flex items-center">
+                            <span class="text-3xl mr-3">🦀</span> 餐食：螃蟹與無障礙
+                        </h3>
+                        <p class="text-stone-700 mb-4 text-sm md:text-base">品嚐美食是旅程重點，但無障礙考量同樣重要。</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
+                            <li><strong class="font-semibold">螃蟹料理 (札幌)：</strong> 推薦「螃蟹本家」或「蟹將軍」。預訂時，請<strong class="font-semibold">指定「一樓座位」或「有電梯可達的樓層」</strong>，並告知有輪椅使用者，他們通常會安排空間較大的桌位或包廂。</li>
+                            <li><strong class="font-semibold">餐廳選擇：</strong> 盡量選擇飯店內的餐廳、大型商場的美食街，或現代建築內（如 A-FACTORY）的餐廳，這些地方的無障礙設施通常最完善。</li>
+                            <li><strong class="font-semibold">預約：</strong> 晚餐強烈建議都先預約，並在預約時註明無障礙需求。</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
+            </section>
+            
+            <!-- Accessibility Notes -->
+            <section id="accessibility" class="content-section">
+                <h2 class="text-2xl font-semibold text-red-700 mb-6 text-center">無障礙重要筆記</h2>
+                <div class="bg-red-50 border border-red-200 rounded-lg shadow-xl p-5 md:p-8">
+                    <p class="text-base md:text-lg text-red-800 mb-6">這趟旅程的成敗關鍵在於對「無障礙」細節的掌握。請務必將以下事項放在心上：</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="text-2xl mr-3 pt-1">1.</span>
+                            <div>
+                                <h4 class="font-semibold text-red-900 text-base md:text-lg">飯店預訂：不要只訂「標準房」</h4>
+                                <p class="text-red-700 text-sm md:text-base">日本飯店的標準房通常非常狹窄，輪椅無法進入浴室。您必須<strong class="font-semibold">明確預訂「無障礙房 (Universal Room / Accessible Room)」</strong>。若無此房型，至少要預訂空間最大的「角落房」，並去信詢問浴室門檻高度與寬度。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-2xl mr-3 pt-1">2.</span>
+                            <div>
+                                <h4 class="font-semibold text-red-900 text-base md:text-lg">洗手間：多利用「多功能廁所」</h4>
+                                <p class="text-red-700 text-sm md:text-base">日本的車站、機場、百貨公司、高速公路休息站和大型觀光景點，幾乎都設有<strong class="font-semibold">「多目的トイレ」</strong>（多功能洗手間）。這些洗手間空間寬敞，設施齊全，是輪椅使用者的首選。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-2xl mr-3 pt-1">3.</span>
+                            <div>
+                                <h4 class="font-semibold text-red-900 text-base md:text-lg">景點：確認「最後一哩路」</h4>
+                                <p class="text-red-700 text-sm md:text-base">許多景點（如神社、部分公園）主要入口有電梯，但內部可能充滿<strong class="font-semibold">碎石路或階梯</strong>。例如元町的斜坡、五稜郭公園的碎石路。利用包車<strong class="font-semibold">「點對點」</strong>停靠在最近的入口，是減少體力消耗的關鍵。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-2xl mr-3 pt-1">4.</span>
+                            <div>
+                                <h4 class="font-semibold text-red-900 text-base md:text-lg">新幹線：務必預訂「輪椅席」</h4>
+                                <p class="text-red-700 text-sm md:text-base">從函館到青森的新幹線，請務必提早（一個月前開放預訂時）透過 JR 官網或窗口預訂<strong class="font-semibold">「輪椅對應座位」</strong>。這些座位通常在特定車廂，空間較大，且緊鄰無障礙洗手間。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
         </main>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-
-    const itineraryData = {
-        1: [
-            { time: '07:30', icon: '✈️', title: '桃園國際機場 (CI154)', desc: '05:00於第二航廈集合，07:30起飛。' },
-            { time: '11:20', icon: '🛬', title: '抵達中部國際機場', desc: '第一航廈。預計出關需30-60分鐘。' },
-            { time: '12:00', icon: '🍴', title: '午餐：みそかつ 矢場とん (備案)', desc: '位於第一航廈4樓Sky Town。若人潮不多可在此用餐。' },
-            { time: '13:00', icon: '🛍️', title: '機場小逛', desc: '4樓有吉卜力周邊「風の小道」和扭蛋專區。' },
-            { time: '14:00', icon: '🚆', title: '前往市區', desc: '從機場搭乘名鐵空港線，經「金山」站轉乘地鐵至「上前津」站。' },
-            { time: '15:30', icon: '🏠', title: 'Airbnb 入住', desc: '位於上前津站附近，緊鄰大須商店街。' },
-            { time: '16:00', icon: '⛩️', title: '三輪神社 (兔子神社)', desc: '以可愛的兔子石像和獨特的御朱印聞名。可先將御朱印帳交給社務所後再逛街。', image: 'https://www.lemon8-app.com/v3/image/7297936868321362438_d20775d7-f076-4660-bf64-b9b59623e1ca?region=jp' },
-            { time: '17:30', icon: '⛩️', title: '大須觀音', desc: '日本三大觀音之一，大須地區的信仰中心。' , image: 'https://www.sakaepark.co.jp/db_image/cl_shop/13/image4.jpg'},
-            { time: '18:30', icon: '🌃', title: '深入大須商店街', desc: '晚餐可選「大須鮨」或「六三六拉麵」。別錯過「青柳總本家」的青蛙饅頭。' },
-            { time: '21:00', icon: '🛒', title: '超市採購', desc: '返回住處前，採買宵夜與飲品。' }
-        ],
-        2: [
-            { time: '08:45', icon: '🚆', title: '出發前往吉卜力公園', desc: '從「上前津」出發，經「栄」轉車，在「愛・地球博記念公園」站下車。' },
-            { time: '10:00', icon: '🌳', title: '吉卜力公園探索', desc: '核心是「吉卜力大倉庫」，注意票券上的指定入場時段。與無臉男合照是必做之事！', image: 'https://ghibli-park.jp/site/img/about/daisouko/img_daisouko_sec03_ph02.webp' },
-            { time: '13:30', icon: '➡️', title: '離開公園', desc: '準備返回市中心，開啟下午的都會之旅。' },
-            { time: '15:00', icon: '🛍️', title: '榮商圈深度探索', desc: '從「栄」站開始，整合所有購物行程。目標包含PARCO、松坂屋(寶可夢中心)、Onitsuka Tiger等。' },
-            { time: '19:30', icon: '🥩', title: '晚餐：飛騨牛一頭家 馬喰一代 (建議)', desc: '將原第四天的晚餐計畫移至此日，動線完美契合。' },
-            { time: '20:00', icon: '🗼', title: '中部電力 MIRAI TOWER (名古屋電視塔)', desc: '登上名古屋地標，欣賞璀璨的城市夜景。', image: 'https://nicomap.net/wp-content/uploads/2021/04/nagoya-tv-tower-hisaya-oodori-park-1.jpg' },
-            { time: '21:00', icon: '🌌', title: '漫步綠洲21', desc: '在未來感的「水之宇宙船」上散步，拍攝電視塔的經典角度。', image: 'https://www.sakaepark.co.jp/wp-content/uploads/2021/09/oasis21_view_05.jpg' }
-        ],
-        3: [
-            { time: '08:00', icon: '🍞', title: '早餐：Tsubame Bread & Milk', desc: '品嚐名古屋特色的小倉紅豆吐司。注意招牌歐姆蛋三明治11:00後才供應。' },
-            { time: '09:00', icon: '👘', title: '和服體驗：着物レンタルVASARA', desc: '於名古屋車站前店進行和服挑選與著裝。' },
-            { time: '10:15', icon: '🏯', title: '名古屋城 & 本丸御殿', desc: '穿著和服漫步。參觀重點是金碧輝煌的本丸御殿。注意：天守閣目前不開放。', image: 'https://www.nagoyajo.city.nagoya.jp/asset/img/learn/property/honmaru/pic_honmaru_01.jpg' },
-            { time: '12:00', icon: '🔄', title: '歸還和服', desc: '返回VASARA店家。' },
-            { time: '12:30', icon: '🍴', title: '午餐：人形町今半 (已預約)', desc: '在Midland Square 41樓享受頂級壽喜燒與城市景觀。', image: 'https://restaurant.imahan.com/wp-content/uploads/2021/04/img_sukiyaki_01.jpg' },
-            { time: '14:00', icon: '🛍️', title: '名古屋車站周邊購物', desc: '目標包含Disney Store、Bic Camera及Échiré奶油專櫃。' },
-            { time: '21:30', icon: '🛒', title: '宵夜採買', desc: '返回住宿前，在便利店或超市進行最後補給。' }
-        ],
-        4: [
-            { time: '09:40', icon: '🚆', title: '前往熱田神宮', desc: '從「上前津」搭乘名鐵至「神宮前」站。' },
-            { time: '10:00', icon: '⛩️', title: '熱田神宮參拜', desc: '探索供奉草薙神劍的莊嚴神域，感受千年楠木的能量。', image: 'https://www.atsutajingu.or.jp/jingu/cms/wp-content/uploads/2020/09/img_shrines_01.jpg' },
-            { time: '10:30', icon: '📝', title: '鰻魚飯登記 (關鍵任務!)', desc: '派一位成員先到「あつた蓬莱軒 本店」現場登記，領取指定用餐時間。本店不接受預約！' },
-            { time: '12:00', icon: '🍴', title: '午餐：あつた蓬莱軒 本店', desc: '品嚐名古屋名物「ひつまぶし」鰻魚飯三吃的極致美味。', image: 'https://www.houraiken.com/img/hitsumabushi/img_hitsumabushi_01.jpg' },
-            { time: '13:30', icon: '🔄', title: '返回大須區域', desc: '搭乘地鐵名城線返回「上前津」站。' },
-            { time: '15:00', icon: '🍵', title: '大須の森カフェ コダマ (已預約)', desc: '享受期待已久的森林系咖啡廳。重要：僅接受現金支付！', image: 'https://s3-ap-northeast-1.amazonaws.com/rose-techno/production/notes/images/000/017/632/original.jpeg?1687612711' },
-            { time: '16:30', icon: '🤖', title: '大須深度探索：MANDARAKE', desc: '在動漫與玩具的寶庫中尋寶。店家12:00才開門，此時段正好。' }
-        ],
-        5: [
-            { time: '07:30', icon: '짐', title: '整理行李 & 退房', desc: '完成Airbnb退房手續。' },
-            { time: '08:45', icon: '🚆', title: '前往中部國際機場', desc: '從「上前津」出發，踏上歸途。' },
-            { time: '10:00', icon: '🎁', title: '伴手禮最終任務', desc: '主攻第一航廈4樓的「えびせんべいの里」(蝦餅之里)，補齊所有購物清單。', image: 'http://www.ebisato.co.jp/shop/images/centrea_photo01.jpg' },
-            { time: '12:20', icon: '🛫', title: '歸程 (CI155)', desc: '航班預計起飛，結束愉快的名古屋之旅。' }
-        ]
-    };
-
-    const budgetData = {
-        labels: ['吉卜力公園門票', '人形町今半', 'Airbnb住宿'],
-        datasets: [{
-            label: '主要共同支出 (JPY)',
-            data: [14650, 21650, 41500],
-            backgroundColor: [
-                'rgba(164, 144, 124, 0.6)',
-                'rgba(200, 182, 166, 0.6)',
-                'rgba(241, 234, 220, 0.8)',
-            ],
-            borderColor: [
-                'rgba(164, 144, 124, 1)',
-                'rgba(200, 182, 166, 1)',
-                'rgba(241, 234, 220, 1)',
-            ],
-            borderWidth: 1
-        }]
-    };
-    
-    const budgetTableData = [
-        { item: '吉卜力公園門票', p1: '2930', p2: '', p3: '2930', p4: '1465', p5: '2930' },
-        { item: '人形町今半', p1: '7000', p2: '3500', p3: '4650', p4: '3500', p5: '' },
-        { item: 'Airbnb', p1: '13800', p2: '7000', p3: '13800', p4: '6900', p5: '' },
-    ];
-
-    const checklistData = {
-        carryon: [
-            { item: '護照', checked: true },
-            { item: '日幣現金', checked: true },
-            { item: '錢包/證件', checked: true },
-            { item: '手機', checked: true },
-            { item: '行動電源', checked: true },
-            { item: '各式充電器與線材', checked: false },
-            { item: '藥品', checked: false, note: '保留原包裝或附證明' },
-            { item: '機票與行程確認單', checked: true },
-            { item: '水壺', checked: false, note: '安檢時需清空' },
-            { item: '輕便雨具', checked: false },
-        ],
-        checked: [
-            { item: '盥洗用品', checked: false, note: '液體隨身需<100ml' },
-            { item: '換洗衣物', checked: false },
-            { item: '購物袋/環保袋', checked: false },
-            { item: '自拍棒', checked: false },
-            { item: '刀片刮鬍刀', checked: false },
-            { item: '行李秤', checked: false },
-            { item: '筆', checked: false },
-        ]
-    };
-
-    const phrasebookData = [
-        { category: '通用', ch: '這個', jp: 'これ (Kore)' },
-        { category: '通用', ch: '多少錢？', jp: 'いくらですか？ (Ikura desu ka?)' },
-        { category: '通用', ch: '我要這個。', jp: 'これをください。 (Kore o kudasai.)' },
-        { category: '餐廳', ch: '推薦什麼？', jp: 'おすすめは何ですか？ (Osusume wa nan desu ka?)' },
-        { category: '餐廳', ch: '結帳。', jp: 'お会計をお願いします。 (Okaikei o onegaishimasu.)' },
-        { category: '人數', ch: '1人/2人/3人', jp: 'ひとり/ふたり/さんにん (hitori/futari/sannin)' },
-    ];
-    
-    const reservationData = [
-        { icon: '✈️', title: '航班', detail: 'CI154 (去) / CI155 (回)' },
-        { icon: '🏠', title: '住宿', detail: 'Airbnb 上前津 (9/17 - 9/21)' },
-        { icon: '🍴', title: '人形町今半', detail: '9/19 (五) 12:30，已預約' },
-        { icon: '🍵', title: '大須の森カフェ', detail: '9/20 (六) 15:00，已預約 (僅收現金)' },
-        { icon: '🌳', title: '吉卜力公園', detail: '9/18 (四) 10:00，注意大倉庫入場時間' },
-    ];
-
-    const mainNav = document.getElementById('main-nav');
-    const contentSections = document.querySelectorAll('.content-section');
-    const dayTabs = document.getElementById('day-tabs');
-    const itineraryContent = document.getElementById('itinerary-content');
-
-    function switchContent(targetId) {
-        contentSections.forEach(section => {
-            section.classList.toggle('hidden', section.id !== `content-${targetId}`);
-        });
-        mainNav.querySelectorAll('button').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.target === targetId);
-        });
-    }
-
-    function renderItinerary(day) {
-        const events = itineraryData[day] || [];
-        itineraryContent.innerHTML = events.map(event => `
-            <div class="timeline-item relative flex items-start pb-8">
-                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#f1eadc] flex items-center justify-center text-xl z-10">
-                    ${event.icon}
-                </div>
-                <div class="ml-4 flex-grow">
-                    <p class="text-sm text-stone-500">${event.time}</p>
-                    <h4 class="font-bold text-lg text-[#8d7b68]">${event.title}</h4>
-                    <p class="mt-1 text-stone-600">${event.desc}</p>
-                    ${event.image ? `<img src="${event.image}" alt="${event.title}" class="mt-3 rounded-lg shadow-md max-w-xs w-full h-auto object-cover" onerror="this.style.display='none'"/>` : ''}
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function switchDay(day) {
-        renderItinerary(day);
-        dayTabs.querySelectorAll('button').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.day === day);
-        });
-    }
-
-    mainNav.addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            switchContent(e.target.dataset.target);
-        }
-    });
-
-    dayTabs.addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            switchDay(e.target.dataset.day);
-        }
-    });
-
-    function renderChecklist() {
-        const carryonContainer = document.getElementById('checklist-carryon');
-        const checkedContainer = document.getElementById('checklist-checked');
-
-        checklistData.carryon.forEach(item => {
-            carryonContainer.innerHTML += `
-                <label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-amber-50 cursor-pointer">
-                    <input type="checkbox" ${item.checked ? 'checked' : ''} class="h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
-                    <span class="text-stone-700">${item.item} ${item.note ? `<span class="text-xs text-stone-500">(${item.note})</span>` : ''}</span>
-                </label>`;
-        });
-
-        checklistData.checked.forEach(item => {
-            checkedContainer.innerHTML += `
-                <label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-amber-50 cursor-pointer">
-                    <input type="checkbox" ${item.checked ? 'checked' : ''} class="h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
-                    <span class="text-stone-700">${item.item} ${item.note ? `<span class="text-xs text-stone-500">(${item.note})</span>` : ''}</span>
-                </label>`;
-        });
-    }
-    
-    function renderBudgetTable() {
-        const tableBody = document.querySelector('#budget-table tbody');
-        budgetTableData.forEach(row => {
-            tableBody.innerHTML += `
-                <tr class="border-b border-stone-200 hover:bg-stone-50">
-                    <td class="p-3 font-medium">${row.item}</td>
-                    <td class="p-3">${row.p1 || '—'}</td>
-                    <td class="p-3">${row.p2 || '—'}</td>
-                    <td class="p-3">${row.p3 || '—'}</td>
-                    <td class="p-3">${row.p4 || '—'}</td>
-                    <td class="p-3">${row.p5 || '—'}</td>
-                </tr>
-            `;
-        });
-    }
-
-    function renderPhrasebook() {
-        const tableBody = document.querySelector('#phrasebook-table tbody');
-        phrasebookData.forEach(row => {
-            tableBody.innerHTML += `
-                <tr class="border-b border-stone-200 hover:bg-stone-50">
-                    <td class="p-2 text-sm font-medium text-amber-700">${row.category}</td>
-                    <td class="p-2 text-sm">${row.ch}</td>
-                    <td class="p-2 text-sm">${row.jp}</td>
-                </tr>
-            `;
-        });
-    }
-    
-    function renderReservations() {
-        const container = document.getElementById('reservations');
-        reservationData.forEach(item => {
-            container.innerHTML += `
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">${item.icon}</span>
-                    <div>
-                        <p class="font-semibold">${item.title}</p>
-                        <p class="text-sm text-stone-600">${item.detail}</p>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    const ctx = document.getElementById('budgetChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: budgetData,
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#f1eadc'
-                    },
-                    ticks: {
-                        callback: function(value, index, values) {
-                            return '¥' + value.toLocaleString();
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Main Navigation
+            const mainNav = document.getElementById('main-nav');
+            const mainContentSections = document.querySelectorAll('.content-section');
+            
+            mainNav.addEventListener('click', function(e) {
+                if (e.target.classList.contains('nav-link')) {
+                    e.preventDefault();
+                    
+                    mainNav.querySelector('.nav-link.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    
+                    const contentId = e.target.getAttribute('data-content');
+                    
+                    mainContentSections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === contentId) {
+                            section.classList.add('active');
                         }
-                    }
-                },
-                y: {
-                   grid: {
-                        display: false
-                    }
+                    });
                 }
-            },
-            plugins: {
-                legend: {
-                    display: false
+            });
+
+            // Day Itinerary Tabs
+            const dayTabs = document.getElementById('day-tabs');
+            const dayContents = document.querySelectorAll('.day-content');
+
+            dayTabs.addEventListener('click', function(e) {
+                if (e.target.classList.contains('day-tab')) {
+                    dayTabs.querySelector('.day-tab.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    
+                    const dayId = e.target.getAttribute('data-day');
+                    
+                    dayContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === dayId) {
+                            content.classList.add('active');
+                        }
+                    });
+                }
+            });
+
+            // Chart.js Doughnut Chart
+            const ctx = document.getElementById('tripChart').getContext('2d');
+            const tripChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['北海道 (札幌, 小樽, 洞爺湖, 函館)', '青森地區'],
+                    datasets: [{
+                        label: '行程天數分配',
+                        data: [5, 4], 
+                        backgroundColor: [
+                            'rgba(15, 118, 110, 0.8)', // teal-700
+                            'rgba(217, 119, 6, 0.8)'   // amber-600
+                        ],
+                        borderColor: [
+                            '#FFFCF5',
+                            '#FFFCF5'
+                        ],
+                        borderWidth: 3
+                    }]
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Noto Sans TC', sans-serif"
+                                }
                             }
-                            if (context.parsed.x !== null) {
-                                label += '¥' + context.parsed.x.toLocaleString();
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += '：';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + ' 天';
+                                    }
+                                    return label;
+                                }
                             }
-                            return label;
                         }
                     }
                 }
-            }
-        }
-    });
+            });
 
-    switchDay('1');
-    renderChecklist();
-    renderBudgetTable();
-    renderPhrasebook();
-    renderReservations();
-});
-</script>
+        });
+    </script>
 
 </body>
 </html>
