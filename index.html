@@ -59,14 +59,17 @@
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 gradient-red rounded-md flex items-center justify-center text-white font-bold text-xl">公</div>
-                    <span class="text-xl font-bold text-gray-900 tracking-tight">冒險者公會 <span class="text-sm font-normal text-gray-500">| 代購平台評估</span></span>
+                    <span class="text-xl font-bold text-gray-900 tracking-tight">冒險者公會 <span class="text-sm font-normal text-gray-500">| 商業想法評估</span></span>
                 </div>
                 <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-600">
                     <a href="#market" class="hover:text-red-700">市場潛力</a>
                     <a href="#logic" class="hover:text-red-700">運作邏輯</a>
                     <a href="#profit" class="hover:text-red-700">獲利試算</a>
                     <a href="#guarantee" class="hover:text-red-700">保障機制</a>
+                    <a href="#profit-scenarios" class="hover:text-red-700">獲利預測</a>
                     <a href="#advice" class="hover:text-red-700">專家建議</a>
+                    <a href="#strategic-dashboard" class="hover:text-red-700">戰略藍圖</a>
+                    
                 </div>
             </div>
         </div>
@@ -186,7 +189,7 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-2">當前匯率</label>
-                                        <input type="number" id="inputRate" value="0.22" step="0.01" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
+                                        <input type="number" id="inputRate" value="0.20" step="0.01" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 mb-2">台灣專櫃價</label>
@@ -291,6 +294,66 @@
             </div>
         </section>
 
+        <!-- New Section: Profit Scenarios -->
+        <section id="profit-scenarios" class="py-20 bg-[#fdfbf7] border-y border-gray-200">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold mb-4">平台獲利情境分析</h2>
+                    <p class="text-gray-500">預估初期、中期、長期在不同市場狀況下的財務表現</p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200">
+                        <thead class="bg-gray-900 text-white text-xs uppercase tracking-widest">
+                            <tr>
+                                <th class="px-6 py-4">營運情境 / 階段</th>
+                                <th class="px-6 py-4">初期 (MVP 測試)</th>
+                                <th class="px-6 py-4">中期 (平台化營運)</th>
+                                <th class="px-6 py-4">長期 (生態系建立)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-gray-100">
+                            <!-- Optimistic -->
+                            <tr class="hover:bg-green-50/50 transition-colors">
+                                <td class="px-6 py-6 font-bold text-green-700 bg-green-50/20">樂觀情境 (High Growth)</td>
+                                <td class="px-6 py-6">月獲利 NT$ 5萬+<br><span class="text-[10px] text-gray-400">高轉化率、高客單價</span></td>
+                                <td class="px-6 py-6">月獲利 NT$ 50萬+<br><span class="text-[10px] text-gray-400">社群效應爆發、品牌溢價</span></td>
+                                <td class="px-6 py-6 font-bold text-gray-900">月獲利 NT$ 200萬+<br><span class="text-[10px] text-gray-400">現貨商城成為主要營收</span></td>
+                            </tr>
+                            <!-- Conservative -->
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-6 font-bold text-gray-700 bg-gray-50/50">保守情境 (Steady)</td>
+                                <td class="px-6 py-6">月獲利 NT$ 2萬+<br><span class="text-[10px] text-gray-400">主要靠親友、小眾市場</span></td>
+                                <td class="px-6 py-6">月獲利 NT$ 20萬+<br><span class="text-[10px] text-gray-400">穩定廣告投入、固定用戶群</span></td>
+                                <td class="px-6 py-6">月獲利 NT$ 80萬+<br><span class="text-[10px] text-gray-400">維持代購市場領導地位</span></td>
+                            </tr>
+                            <!-- Pessimistic -->
+                            <tr class="hover:bg-red-50/50 transition-colors">
+                                <td class="px-6 py-6 font-bold text-red-700 bg-red-50/20">悲觀情境 (Low Conversion)</td>
+                                <td class="px-6 py-6">損益平衡點徘徊<br><span class="text-[10px] text-gray-400">信任門檻高、獲客成本高</span></td>
+                                <td class="px-6 py-6">月獲利 NT$ 5萬+<br><span class="text-[10px] text-gray-400">需大幅轉向利基市場</span></td>
+                                <td class="px-6 py-6">月獲利 NT$ 25萬+<br><span class="text-[10px] text-gray-400">面臨法律監管或同業競爭</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-8 grid md:grid-cols-3 gap-6">
+                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <h5 class="font-bold text-xs uppercase text-gray-400 mb-2">初期關鍵 (0-6M)</h5>
+                        <p class="text-xs text-gray-600">驗證無印良品、服飾類的高毛利路徑。損益平衡預計在每月 300 單。</p>
+                    </div>
+                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <h5 class="font-bold text-xs uppercase text-gray-400 mb-2">中期關鍵 (6-18M)</h5>
+                        <p class="text-xs text-gray-600">擴張據點效能，利用棄單轉現貨提高綜合毛利率至 20% 以上。</p>
+                    </div>
+                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <h5 class="font-bold text-xs uppercase text-gray-400 mb-2">長期關鍵 (18M+)</h5>
+                        <p class="text-xs text-gray-600">建立代購生態系，包含日本倉儲直發、會員等級獎勵制。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- SWOT & Strategy -->
         <section id="advice" class="py-20 bg-[#fcfaf7]">
             <div class="max-w-6xl mx-auto px-4">
@@ -347,6 +410,125 @@
                 </div>
             </div>
         </section>
+
+        <!-- Strategic Dashboard: Transcribing Image Content -->
+        <section id="strategic-dashboard" class="py-20 bg-white">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold mb-4">戰略藍圖：冒險者公會核心規劃</h2>
+                    <p class="text-gray-500">參考戰略規劃圖內容所生成的數據化看板</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <!-- Quadrant 1: SWOT - Strengths -->
+                    <div class="p-8 bg-blue-50 rounded-[2.5rem] border border-blue-100">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold">S</span>
+                            <h4 class="font-bold text-blue-900">核心優勢</h4>
+                        </div>
+                        <ul class="text-xs text-blue-700 space-y-3 leading-relaxed">
+                            <li>● 獨家「公會中繼」信任模型</li>
+                            <li>● 實體據點驗貨，消除假貨疑慮</li>
+                            <li>● 訂金機制補償賣家，極低棄單率</li>
+                        </ul>
+                    </div>
+                    <!-- Quadrant 2: SWOT - Weaknesses -->
+                    <div class="p-8 bg-orange-50 rounded-[2.5rem] border border-orange-100">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="w-8 h-8 bg-orange-600 text-white rounded-lg flex items-center justify-center font-bold">W</span>
+                            <h4 class="font-bold text-orange-900">潛在弱點</h4>
+                        </div>
+                        <ul class="text-xs text-orange-700 space-y-3 leading-relaxed">
+                            <li>● 人力檢核成本隨規模線性增加</li>
+                            <li>● 初期買賣雙方匹配效率不足</li>
+                            <li>● 對日本特定品牌依賴度過高</li>
+                        </ul>
+                    </div>
+                    <!-- Quadrant 3: SWOT - Opportunities -->
+                    <div class="p-8 bg-green-50 rounded-[2.5rem] border border-green-100">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="w-8 h-8 bg-green-600 text-white rounded-lg flex items-center justify-center font-bold">O</span>
+                            <h4 class="font-bold text-green-900">市場機會</h4>
+                        </div>
+                        <ul class="text-xs text-green-700 space-y-3 leading-relaxed">
+                            <li>● 日本限定商品、聯名款需求激增</li>
+                            <li>● 匯率長期低迷，台日價差擴大</li>
+                            <li>● 發展「現貨市集」建立二次獲利</li>
+                        </ul>
+                    </div>
+                    <!-- Quadrant 4: SWOT - Threats -->
+                    <div class="p-8 bg-red-50 rounded-[2.5rem] border border-red-100">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="w-8 h-8 bg-red-600 text-white rounded-lg flex items-center justify-center font-bold">T</span>
+                            <h4 class="font-bold text-red-900">外部威脅</h4>
+                        </div>
+                        <ul class="text-xs text-red-700 space-y-3 leading-relaxed">
+                            <li>● 兩國海關政策與關稅調整風險</li>
+                            <li>● 日本品牌全球定價趨於一致化</li>
+                            <li>● 蝦皮、淘寶等大平台切入代購</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Strategic Pillars -->
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div class="bg-gray-50 p-10 rounded-[3rem]">
+                        <h4 class="text-xl font-bold mb-6 flex items-center gap-3">
+                            <span class="text-red-700">🎯</span> 目標族群劃分 (Target Audience)
+                        </h4>
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-center p-4 bg-white rounded-2xl">
+                                <div>
+                                    <div class="font-bold text-sm">小資服飾愛好者</div>
+                                    <div class="text-[10px] text-gray-400">追求台日 300-500 元價差，對品質要求高。</div>
+                                </div>
+                                <div class="text-red-700 font-bold">核心受眾</div>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-white rounded-2xl">
+                                <div>
+                                    <div class="font-bold text-sm">動漫/精品收藏家</div>
+                                    <div class="text-[10px] text-gray-400">購買日本限定款，願意支付高額 Bonus。</div>
+                                </div>
+                                <div class="text-gray-400 font-bold italic">高利潤點</div>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-white rounded-2xl">
+                                <div>
+                                    <div class="font-bold text-sm">頻繁旅日觀光客</div>
+                                    <div class="text-[10px] text-gray-400">想補貼旅費，但不希望處理物流糾紛。</div>
+                                </div>
+                                <div class="text-green-600 font-bold">供應主力</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h4 class="text-2xl font-bold mb-6">核心成功要素 (Key Success Factors)</h4>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-start gap-4">
+                                <span class="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] mt-1 shrink-0">1</span>
+                                <div>
+                                    <div class="font-bold text-sm">自動化媒合引擎</div>
+                                    <p class="text-xs text-gray-500">透過 APP 串接 API，自動比對日本定價與行李空間。</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-start gap-4">
+                                <span class="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] mt-1 shrink-0">2</span>
+                                <div>
+                                    <div class="font-bold text-sm">強大的棄單轉售流量</div>
+                                    <p class="text-xs text-gray-500">建立現貨流量池，讓棄單變成「限量現貨」的營銷機會。</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-start gap-4">
+                                <span class="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] mt-1 shrink-0">3</span>
+                                <div>
+                                    <div class="font-bold text-sm">多點中轉物流體系</div>
+                                    <p class="text-xs text-gray-500">降低國內運費支出，縮短買賣雙方的實體交貨距離。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="bg-white border-t border-gray-100 py-12">
@@ -359,7 +541,7 @@
         // Simulation Logic
         function updateSimulation() {
             const jpPrice = parseFloat(document.getElementById('inputJpPrice').value) || 0;
-            const rate = parseFloat(document.getElementById('inputRate').value) || 0.22;
+            const rate = parseFloat(document.getElementById('inputRate').value) || 0.20;
             const twPrice = parseFloat(document.getElementById('inputTwPrice').value) || 0;
             const bonus = parseInt(document.getElementById('inputBonus').value) || 0;
 
@@ -412,7 +594,7 @@
                     labels: ['日本購入 (¥5990)', '平台售價 (含費)', '台灣官網售價'],
                     datasets: [{
                         label: 'NTD 價格對比',
-                        data: [1318, 1580, 1790], // Adjusted based on 0.22 rate
+                        data: [1198, 1438, 1790], // Adjusted based on 0.20 rate
                         backgroundColor: [
                             'rgba(209, 213, 219, 0.6)',
                             'rgba(185, 28, 28, 0.8)',
