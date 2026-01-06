@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商業評估：旅日代購「冒險者公會」平台</title>
+    <title>冒險者公會：旅日代購平台商業評估報告</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #fcfaf7;
-            color: #374151;
+            color: #1f2937;
         }
         .chart-container {
             position: relative;
@@ -26,109 +26,97 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .guild-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .input-focus:focus {
-            outline: none;
-            border-color: #b91c1c;
-            box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.1);
+        .gradient-red {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
         }
     </style>
-    <!-- Chosen Palette: Red Armor & Rice Paper (Traditional Japanese feel: #b91c1c, #fcfaf7, #374151) -->
+    <!-- Chosen Palette: Guild Crimson (#b91c1c), Antique White (#fcfaf7), Slate Grey (#1f2937), Success Green (#059669) -->
     <!-- Application Structure Plan:
-        1. Executive Context: Defining the "Japan Travel Boom" and the price arbitrage.
-        2. Market Analysis: Visualizing the gap using the "無印良品" example.
-        3. The Adventurer's Logic: A walkthrough of the logistics and trust building.
-        4. Three-Way Profit Simulator: A dynamic tool to show how Buyer, Seller, and Platform all win.
-        5. Strategic Assessment: SWOT analysis and operational recommendations.
+        1. Executive Context: Defining the "Japan-Taiwan" travel trend and price gap.
+        2. Market Analysis: Visualizing price arbitrage through the "無印良品" use case.
+        3. Operational Logic: The "Adventurer's Guild" model interaction (Buyer/Seller/Guild).
+        4. Financial Simulation: A dynamic calculator showing profit distribution for all parties.
+        5. Guarantee Mechanism: Explaining the deposit and inventory resale system to mitigate risk.
+        6. Strategic Analysis: SWOT and Expert Recommendations for scaling.
     -->
     <!-- Visualization & Content Choices:
-        - Price Arbitrage Bar Chart: Showing the huge gap in 無印良品 pricing.
-        - Interaction Process: Step-by-step UI for the supply-demand workflow.
-        - Financial Simulator: Real-time calculation of Platform revenue, Seller bonus, and Buyer savings.
+        - Price Arbitrage Bar Chart: Visualizing the gap in 無印良品 pricing.
+        - Process Flow: Interactive steps for the platform's supply-demand cycle.
+        - Profit Calculator: Dynamic calculation of Platform revenue, Seller bonus, and Buyer savings.
+        - Default Scenarios: Explaining the "Deposit + Resale" profitability.
         CONFIRMATION: NO SVG/Mermaid used.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
-<body class="min-h-screen">
+<body class="flex flex-col min-h-screen">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center text-white font-bold">公</div>
-                <h1 class="text-xl font-bold tracking-tight text-gray-900">旅日代購「冒險者公會」評估</h1>
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 gradient-red rounded-md flex items-center justify-center text-white font-bold text-xl">公</div>
+                    <span class="text-xl font-bold text-gray-900 tracking-tight">冒險者公會 <span class="text-sm font-normal text-gray-500">| 代購平台評估</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-600">
+                    <a href="#market" class="hover:text-red-700">市場潛力</a>
+                    <a href="#logic" class="hover:text-red-700">運作邏輯</a>
+                    <a href="#profit" class="hover:text-red-700">獲利試算</a>
+                    <a href="#guarantee" class="hover:text-red-700">保障機制</a>
+                    <a href="#advice" class="hover:text-red-700">專家建議</a>
+                </div>
             </div>
-            <nav class="hidden md:flex space-x-6 text-sm font-medium">
-                <a href="#market" class="text-gray-500 hover:text-red-700">市場潛力</a>
-                <a href="#model" class="text-gray-500 hover:text-red-700">運作邏輯</a>
-                <a href="#simulation" class="text-gray-500 hover:text-red-700">獲利試算</a>
-                <a href="#advice" class="text-gray-500 hover:text-red-700">專家建議</a>
-            </nav>
         </div>
-    </header>
+    </nav>
 
-    <main>
+    <main class="flex-grow">
         <!-- Hero Section -->
-        <section class="py-16 px-4 bg-gradient-to-b from-white to-[#fcfaf7]">
-            <div class="max-w-4xl mx-auto text-center">
-                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full mb-4">NEW BUSINESS MODEL</span>
-                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
-                    將旅日遊客轉化為<br><span class="text-red-700">專業代購冒險者</span>
-                </h2>
-                <p class="text-lg text-gray-600 mb-10 leading-relaxed">
-                    基於供需法則的「隨緣代購」平台：我們處理物流與金流，讓旅行者輕鬆賺取旅費，讓買家安心購得價差商品。
+        <section class="py-16 px-4 bg-white text-center">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+                    將旅遊與代購完美結合的<br><span class="text-red-700 italic">「冒險者公會」</span>模式
+                </h1>
+                <p class="text-lg text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
+                    利用旅日台灣遊客的閒置行李空間，創造全新的代購服務體驗。<br>我們透過獨創的「公會制」提供金流與檢核保障，<br>讓代購變得很Chill，讓交易充滿安全感，<br>並透過訂金機制將棄單風險轉化為高額庫存收益。
                 </p>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div class="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                        <div class="text-gray-400 mb-2">買家</div>
-                        <div class="text-2xl font-bold">安心與價差</div>
-                    </div>
-                    <div class="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                        <div class="text-gray-400 mb-2">賣家</div>
-                        <div class="text-2xl font-bold">省事與收益</div>
-                    </div>
-                    <div class="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                        <div class="text-gray-400 mb-2">平台</div>
-                        <div class="text-2xl font-bold">手續費與流量</div>
-                    </div>
+                <div class="flex justify-center gap-4">
+                    <div class="px-6 py-3 bg-gray-900 text-white rounded-full font-bold shadow-lg">商業模型評估 V1.0</div>
                 </div>
             </div>
         </section>
 
-        <!-- Market Opportunity -->
-        <section id="market" class="py-16 bg-white border-y border-gray-100">
+        <!-- Market Potential: Price Arbitrage -->
+        <section id="market" class="py-20 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4">
-                <div class="flex flex-col md:flex-row gap-12 items-center">
-                    <div class="flex-1">
-                        <h3 class="text-3xl font-bold mb-6">為什麼現在是好時機？</h3>
-                        <p class="text-gray-600 mb-6 leading-relaxed">
-                            日幣匯率長期低迷，加上無印良品、Uniqlo 等品牌在台日兩地的定價策略差異，產生了巨大的獲利空間。
-                        </p>
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-4">
-                                <div class="bg-red-50 p-2 rounded-lg text-red-700 font-bold">¥</div>
-                                <div>
-                                    <h4 class="font-bold">匯率與定價差</h4>
-                                    <p class="text-sm text-gray-500">以無印良品外套為例，台日價差高達 NT$ 500 以上。</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-4">
-                                <div class="bg-red-50 p-2 rounded-lg text-red-700 font-bold">🤝</div>
-                                <div>
-                                    <h4 class="font-bold">信任缺失的市場</h4>
-                                    <p class="text-sm text-gray-500">一般社團代購缺乏第三方擔保與信用卡支付，風險由買家承擔。</p>
-                                </div>
-                            </div>
+                <div class="mb-12 text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">市場潛力：巨大的定價紅利</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        匯率低迷與區域定價策略差異，使「日本購買」在台灣具有天然的價格吸引力。
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm">
+                        <div class="chart-container">
+                            <canvas id="mujiPriceChart"></canvas>
                         </div>
+                        <p class="text-center text-xs text-gray-400 mt-4">註：以無印良品外套為例 (JPY 折合 TWD vs TW 官網售價)</p>
                     </div>
-                    <div class="flex-1 w-full">
-                        <div class="bg-gray-50 p-6 rounded-3xl shadow-inner">
-                            <div class="chart-container">
-                                <canvas id="mujiPriceChart"></canvas>
-                            </div>
-                            <p class="text-center text-xs text-gray-400 mt-4">註：無印良品外套案例 (日幣折合台幣 vs 台灣官網定價)</p>
+                    <div class="space-y-6">
+                        <div class="p-6 bg-white rounded-2xl border-l-4 border-red-700 shadow-sm">
+                            <h4 class="font-bold text-lg mb-2 text-gray-900">1. 套利空間顯著</h4>
+                            <p class="text-sm text-gray-600">即便計入平台費與賣家賞金，平均單件高價值商品（如無印良品、Uniqlo）仍有 NT$ 300 - 800 的價差。</p>
+                        </div>
+                        <div class="p-6 bg-white rounded-2xl border-l-4 border-red-700 shadow-sm">
+                            <h4 class="font-bold text-lg mb-2 text-gray-900">2. 供給端量體龐大</h4>
+                            <p class="text-sm text-gray-600">台灣每年赴日旅遊人次數百萬計。大多數旅人皆有「順手帶貨補貼旅費」的念頭，缺乏的是簡單的工具與信任機制。</p>
+                        </div>
+                        <div class="p-6 bg-white rounded-2xl border-l-4 border-red-700 shadow-sm">
+                            <h4 class="font-bold text-lg mb-2 text-gray-900">3. 隨緣代購需求</h4>
+                            <p class="text-sm text-gray-600">買家不排斥等待，他們在意的是「官方驗貨」與「信用卡支付」的安全性，而非極速到貨。</p>
                         </div>
                     </div>
                 </div>
@@ -136,7 +124,7 @@
         </section>
 
         <!-- The Guild Model Interaction -->
-        <section id="model" class="py-16 bg-[#fcfaf7]">
+        <section id="logic" class="py-20 bg-white">
             <div class="max-w-6xl mx-auto px-4">
                 <div class="text-center mb-12">
                     <h3 class="text-3xl font-bold mb-4">冒險者公會運作流程</h3>
@@ -177,90 +165,134 @@
             </div>
         </section>
 
-        <!-- Three-Way Profit Simulator -->
-        <section id="simulation" class="py-16 bg-white">
+        <!-- Profit Simulation -->
+        <section id="profit" class="py-20 bg-[#fdfbf7] border-y border-gray-200">
             <div class="max-w-5xl mx-auto px-4">
                 <div class="text-center mb-12">
-                    <h3 class="text-3xl font-bold mb-4">三方獲利財務試算</h3>
-                    <p class="text-gray-600">透過下方動態工具，模擬每一單的價值分配</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">財務試算：三方贏利模型</h2>
+                    <p class="text-gray-600">透過動態參數，試算每一筆交易所創造的價值分配。</p>
                 </div>
 
-                <div class="bg-gray-50 rounded-[2.5rem] p-8 md:p-12 shadow-inner border border-gray-100">
-                    <div class="grid md:grid-cols-2 gap-12 items-center">
-                        <!-- Controls -->
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">商品日本定價 (JPY)</label>
-                                <input type="number" id="inputJpPrice" value="5990" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl input-focus font-bold text-lg">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200">
+                    <div class="grid md:grid-cols-2">
+                        <!-- Left: Inputs -->
+                        <div class="p-8 bg-gray-50 border-r border-gray-100">
+                            <h4 class="font-bold text-gray-800 mb-6 uppercase tracking-wider text-sm">設定交易參數</h4>
+                            <div class="space-y-6">
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">台幣匯率</label>
-                                    <input type="number" id="inputRate" value="0.22" step="0.01" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl input-focus">
+                                    <label class="block text-xs font-bold text-gray-500 mb-2">日本購入價 (JPY)</label>
+                                    <input type="number" id="inputJpPrice" value="5990" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-2">當前匯率</label>
+                                        <input type="number" id="inputRate" value="0.22" step="0.01" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-2">台灣專櫃價</label>
+                                        <input type="number" id="inputTwPrice" value="1790" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">台灣專櫃價 (TWD)</label>
-                                    <input type="number" id="inputTwPrice" value="1790" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl input-focus">
-                                </div>
-                            </div>
-                            <div class="p-4 bg-white rounded-2xl border border-gray-100">
-                                <label class="block text-sm font-bold text-gray-700 mb-2">冒險者額外 Bonus (加價)</label>
-                                <input type="range" id="inputBonus" min="0" max="500" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-700">
-                                <div class="flex justify-between text-xs text-gray-500 mt-2">
-                                    <span>$0</span>
-                                    <span class="font-bold text-red-700">加價 NT$ <span id="displayBonus">100</span></span>
-                                    <span>$500</span>
+                                    <label class="block text-xs font-bold text-gray-500 mb-2">買家加價賞金 (Bonus)</label>
+                                    <input type="range" id="inputBonus" min="0" max="500" value="150" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-700">
+                                    <div class="flex justify-between text-xs font-bold text-red-700 mt-2">
+                                        <span>最低 $0</span>
+                                        <span>當前：NT$ <span id="displayBonus">150</span></span>
+                                        <span>最高 $500</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Result Display -->
-                        <div class="space-y-4">
-                            <!-- Platform Result -->
-                            <div class="bg-gray-900 text-white p-6 rounded-3xl shadow-lg transform scale-105">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">公會收益 (Platform)</span>
-                                    <span class="bg-red-700 text-[10px] px-2 py-0.5 rounded">平台毛利</span>
-                                </div>
+                        <!-- Right: Outputs -->
+                        <div class="p-8 flex flex-col justify-center space-y-6">
+                            <div class="bg-red-700 p-6 rounded-2xl text-white shadow-lg">
+                                <p class="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-1">平台收益 (公會)</p>
                                 <div class="flex justify-between items-baseline">
-                                    <span class="text-3xl font-extrabold" id="calcPlatformProfit">NT$ 102</span>
-                                    <span class="text-xs text-gray-400">含手續費 10% 扣除金流費</span>
+                                    <span class="text-3xl font-extrabold" id="outPlatformProfit">NT$ 152</span>
+                                    <span class="text-xs opacity-80">含服務費與 Bonus 抽成</span>
                                 </div>
                             </div>
-
-                            <!-- Seller Result -->
-                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">冒險者酬勞 (Seller)</span>
-                                </div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-200">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">賣家所得 (冒險者)</p>
                                 <div class="flex justify-between items-baseline">
-                                    <span class="text-3xl font-extrabold text-red-700" id="calcSellerIncome">NT$ 100</span>
-                                    <span class="text-xs text-green-600 font-bold" id="calcSellerROI">+10% 補貼</span>
+                                    <span class="text-3xl font-extrabold text-gray-900" id="outSellerIncome">NT$ 150</span>
+                                    <span class="text-xs text-green-600 font-bold" id="outSellerMargin">11% 補貼</span>
                                 </div>
                             </div>
-
-                            <!-- Buyer Result -->
-                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">買家省下 (Buyer)</span>
-                                </div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-200">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">買家節省 (委託人)</p>
                                 <div class="flex justify-between items-baseline">
-                                    <span class="text-3xl font-extrabold text-gray-800" id="calcBuyerSavings">NT$ 272</span>
-                                    <span class="text-xs text-blue-600 font-bold" id="calcBuyerDiscount">省 15%</span>
+                                    <span class="text-3xl font-extrabold text-gray-900" id="outBuyerSavings">NT$ 170</span>
+                                    <span class="text-xs text-blue-600 font-bold" id="outBuyerPct">省 10%</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-10 pt-8 border-t border-gray-200 text-xs text-gray-400 text-center leading-relaxed">
-                        * 試算假設：平台抽取成交額 10% 作為服務費。金流手續費 (綠界) 約 2.75%。<br>
-                        * 賣家收益主要來自 Bonus 與信用卡海外消費回饋(未計入)。買家價格已包含各項費用。
+                </div>
+            </div>
+        </section>
+
+        <!-- Guarantee Mechanism: The Resale Strategy -->
+        <section id="guarantee" class="py-20 bg-white">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="grid md:grid-cols-2 gap-16 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-6">保障機制：棄單轉現貨策略</h2>
+                        <p class="text-gray-600 mb-8 leading-relaxed">
+                            傳統代購最怕買家反悔，我們將這項「風險」轉化為「獲利核心」。透過預收訂金與官方收購，確保賣家利益的同時，為平台創造更高毛利的庫存。
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex gap-4 items-start p-5 bg-gray-50 rounded-2xl">
+                                <div class="w-10 h-10 gradient-red rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">1</div>
+                                <div>
+                                    <h5 class="font-bold text-gray-900">強制訂金機制</h5>
+                                    <p class="text-sm text-gray-500">買家委託時須支付商品總價 30% - 50% 為訂金。若不履約，訂金全額沒收。</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 items-start p-5 bg-gray-50 rounded-2xl">
+                                <div class="w-10 h-10 gradient-red rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">2</div>
+                                <div>
+                                    <h5 class="font-bold text-gray-900">官方強制收購</h5>
+                                    <p class="text-sm text-gray-500">若買家棄單，公會以「原價 + 部分補償」直接向賣家購回商品，賣家完全無損失。</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 items-start p-5 bg-gray-50 rounded-2xl">
+                                <div class="w-10 h-10 gradient-red rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">3</div>
+                                <div>
+                                    <h5 class="font-bold text-gray-900">庫存現貨專區</h5>
+                                    <p class="text-sm text-gray-500">被棄單的商品轉入「現貨專區」。由於已有沒收訂金墊底，現貨販售能創造比原服務費高出 3-5 倍的毛利。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-900 p-10 rounded-[3rem] text-white shadow-2xl overflow-hidden relative">
+                        <div class="relative z-10">
+                            <h4 class="text-2xl font-bold mb-6">為什麼棄單反而是獲利機會？</h4>
+                            <div class="space-y-6">
+                                <div class="border-l-2 border-red-700 pl-6">
+                                    <p class="text-xs text-gray-400 uppercase mb-1">情境：正常成交</p>
+                                    <p class="text-lg font-bold">平台獲利：NT$ 150</p>
+                                    <p class="text-xs text-gray-500 mt-1">單筆服務費抽成</p>
+                                </div>
+                                <div class="border-l-2 border-green-500 pl-6">
+                                    <p class="text-xs text-gray-400 uppercase mb-1">情境：買家棄單並轉售</p>
+                                    <p class="text-lg font-bold text-green-400">平台預估獲利：NT$ 750+</p>
+                                    <p class="text-xs text-gray-500 mt-1">沒收訂金 ($450) + 現貨轉售溢價 ($300)</p>
+                                </div>
+                                <p class="text-sm text-gray-400 leading-relaxed pt-4 border-t border-white/10 italic">
+                                    「這將原本被動的代購平台，轉變為擁有實體現貨流動性的零售混和體。」
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- SWOT & Strategy -->
-        <section id="advice" class="py-16 bg-[#fcfaf7]">
+        <section id="advice" class="py-20 bg-[#fcfaf7]">
             <div class="max-w-6xl mx-auto px-4">
                 <h3 class="text-3xl font-bold text-center mb-12">戰略分析與風險管理</h3>
                 
@@ -317,101 +349,96 @@
         </section>
     </main>
 
-    <footer class="py-12 bg-white border-t border-gray-100 text-center">
-        <p class="text-gray-400 text-xs">© 2024 冒險者公會代購平台 | 商業模式評估專用文件</p>
+    <footer class="bg-white border-t border-gray-100 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-xs text-gray-400 uppercase tracking-widest font-bold">冒險者公會 代購平台商業報告 | &copy; 2026</p>
+        </div>
     </footer>
 
     <script>
-        // Data and Chart Logic
-        function initCharts() {
-            const ctx = document.getElementById('mujiPriceChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['日本購入 (¥5990)', '平台預估含費', '台灣專櫃價'],
-                    datasets: [{
-                        label: 'NTD 價格對比',
-                        data: [1318, 1550, 1790], // Adjusted based on 0.22 rate
-                        backgroundColor: [
-                            'rgba(209, 213, 219, 0.6)',
-                            'rgba(185, 28, 28, 0.8)',
-                            'rgba(55, 65, 81, 0.8)'
-                        ],
-                        borderRadius: 8,
-                        barThickness: 40
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { display: false } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        // Simulator Logic
+        // Simulation Logic
         function updateSimulation() {
             const jpPrice = parseFloat(document.getElementById('inputJpPrice').value) || 0;
             const rate = parseFloat(document.getElementById('inputRate').value) || 0.22;
             const twPrice = parseFloat(document.getElementById('inputTwPrice').value) || 0;
             const bonus = parseInt(document.getElementById('inputBonus').value) || 0;
 
-            // Derived values
             const costTwd = Math.round(jpPrice * rate);
             
-            // Platform Fee Strategy: 10% of (Cost + Bonus)
-            const serviceFee = Math.round((costTwd + bonus) * 0.10);
+            // Platform Logic
+            // Fee: 10% of item cost + 20% of bonus
+            const baseFee = costTwd * 0.10;
+            const bonusFee = bonus * 0.20;
+            const platformRevenue = Math.round(baseFee + bonusFee);
             
-            // Final Price for Buyer
-            const finalBuyerPrice = costTwd + bonus + serviceFee;
-            
-            // Platform Profit
-            const cashFlowFee = finalBuyerPrice * 0.0275; // 綠界手續費
-            const platformProfit = Math.round(serviceFee - cashFlowFee);
-            
-            // Seller Income (They get back the cost they paid + the bonus)
-            // Their "Profit" per se is the Bonus.
-            const sellerProfit = bonus;
+            // Platform Expenses (Est: 2.75% Payment gateway + $30 logistics overhead)
+            const paymentFee = (costTwd + bonus + baseFee) * 0.0275;
+            const platformNetProfit = Math.round(platformRevenue - paymentFee - 30);
+
+            // Seller Income
+            const sellerNetProfit = bonus; 
+            const sellerMargin = costTwd > 0 ? Math.round((sellerNetProfit / costTwd) * 100) : 0;
 
             // Buyer Savings
-            const savings = twPrice - finalBuyerPrice;
-            const savingsPercent = twPrice > 0 ? Math.round((savings / twPrice) * 100) : 0;
+            const finalPrice = costTwd + bonus + Math.round(baseFee);
+            const savings = twPrice - finalPrice;
+            const savingsPct = twPrice > 0 ? Math.round((savings / twPrice) * 100) : 0;
 
             // Update UI
             document.getElementById('displayBonus').innerText = bonus;
-            document.getElementById('calcPlatformProfit').innerText = `NT$ ${platformProfit.toLocaleString()}`;
-            document.getElementById('calcSellerIncome').innerText = `NT$ ${sellerProfit.toLocaleString()}`;
-            document.getElementById('calcBuyerSavings').innerText = `NT$ ${savings.toLocaleString()}`;
+            document.getElementById('outPlatformProfit').innerText = `NT$ ${platformNetProfit.toLocaleString()}`;
+            document.getElementById('outSellerIncome').innerText = `NT$ ${sellerNetProfit.toLocaleString()}`;
+            document.getElementById('outSellerMargin').innerText = `${sellerMargin}% 補貼`;
+            document.getElementById('outBuyerSavings').innerText = `NT$ ${savings.toLocaleString()}`;
+            document.getElementById('outBuyerPct').innerText = `省 ${savingsPct}%`;
             
-            document.getElementById('calcBuyerDiscount').innerText = `省 ${savingsPercent}%`;
-            document.getElementById('calcSellerROI').innerText = `+${Math.round((bonus/costTwd)*100)}% 報酬`;
-            
-            // Dynamic styling if savings become negative
-            const savingsDisplay = document.getElementById('calcBuyerSavings');
+            // Adjust Savings Color
+            const savingsEl = document.getElementById('outBuyerSavings');
             if (savings < 0) {
-                savingsDisplay.classList.add('text-red-500');
+                savingsEl.classList.remove('text-gray-900');
+                savingsEl.classList.add('text-red-600');
             } else {
-                savingsDisplay.classList.remove('text-red-500');
+                savingsEl.classList.remove('text-red-600');
+                savingsEl.classList.add('text-gray-900');
             }
         }
 
-        // Listeners
-        document.getElementById('inputJpPrice').addEventListener('input', updateSimulation);
-        document.getElementById('inputRate').addEventListener('input', updateSimulation);
-        document.getElementById('inputTwPrice').addEventListener('input', updateSimulation);
-        document.getElementById('inputBonus').addEventListener('input', updateSimulation);
+        // Charts Initialization
+        window.onload = function() {
+            const ctx = document.getElementById('mujiPriceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['日本購入 (¥5990)', '平台售價 (含費)', '台灣官網售價'],
+                    datasets: [{
+                        label: 'NTD 價格對比',
+                        data: [1318, 1580, 1790], // Adjusted based on 0.22 rate
+                        backgroundColor: [
+                            'rgba(209, 213, 219, 0.6)',
+                            'rgba(185, 28, 28, 0.8)',
+                            'rgba(31, 41, 55, 0.8)'
+                        ],
+                        borderRadius: 12,
+                        barThickness: 45
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
 
-        // Run on load
-        window.onload = () => {
-            initCharts();
+            // Simulator listeners
+            ['inputJpPrice', 'inputRate', 'inputTwPrice', 'inputBonus'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateSimulation);
+            });
             updateSimulation();
-        };
+        }
     </script>
 </body>
 </html>
