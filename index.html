@@ -1,506 +1,645 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>北海道 & 青森：家庭無障礙之旅</title>
+    <title>商業評估報告：冒險者公會代購平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.7.1/chart.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals (Beige/Ivory, Soft Brown, Gentle Teal, Warm Terracotta) -->
-    <!-- Application Structure Plan: SPA with top navigation (Home, Itinerary, Hotels, Transport, Accessibility). Main interaction is a tabbed interface for "Daily Details" (Day 1, Day 2...). This structure breaks down the complex 9-day plan into manageable, user-selectable chunks, prioritizing the user's need to examine the plan day by day. An overview chart provides a high-level summary. This is more user-friendly than a single, long scrolling document. -->
-    <!-- Visualization & Content Choices: 1. Report Info: 8-9 day trip, Hokkaido & Aomori. Goal: Show time allocation. Viz: Doughnut Chart (Chart.js/Canvas). Interaction: Tooltip on hover. Justification: Provides a quick visual summary of the trip's structure (e.g., 5 days Hokkaido, 4 days Aomori). 2. Report Info: Daily Itinerary. Goal: Present detailed plan. Viz: Tabbed HTML/CSS content blocks. Interaction: Click tabs (Day 1, Day 2...) to show/hide respective content. Justification: Organizes a large amount of text logically, prevents overwhelming the user, supports the designed "day-by-day" exploration flow. 3. Report Info: Accessibility, Hotels, Food. Goal: Provide key details. Viz: Styled HTML cards/lists. Interaction: None, static info display. Justification: Clear, legible presentation of crucial information. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #FFFCF5; /* bg-amber-50 */
-            color: #44403C; /* text-stone-800 */
-        }
-        .nav-link {
-            @apply px-3 py-2 md:px-4 text-stone-700 hover:text-teal-700 rounded-lg transition-colors cursor-pointer;
-        }
-        .nav-link.active {
-            @apply bg-teal-700 text-white font-semibold shadow-md;
-        }
-        .content-section {
-            @apply hidden;
-        }
-        .content-section.active {
-            @apply block;
-        }
-        .day-tab {
-            @apply px-3 py-2 text-sm md:px-4 md:py-3 md:text-base text-stone-600 bg-white border border-amber-300 rounded-t-lg cursor-pointer hover:bg-amber-100 transition-colors;
-        }
-        .day-tab.active {
-            @apply bg-teal-700 text-white font-medium border-teal-700;
-        }
-        .day-content {
-            @apply hidden p-6 bg-white border border-t-0 border-amber-300 rounded-b-lg;
-        }
-        .day-content.active {
-            @apply block;
+            background-color: #fdfbf7; /* Warm neutral background */
+            color: #4a4a4a;
         }
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 400px;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
             height: 300px;
-            max-height: 350px;
+            max-height: 400px;
         }
         @media (min-width: 768px) {
             .chart-container {
                 height: 350px;
             }
         }
-        .card {
-            @apply bg-white rounded-lg shadow-lg overflow-hidden transition-shadow hover:shadow-xl;
+        .nav-link.active {
+            color: #b91c1c; /* Deep Red */
+            font-weight: 700;
+            border-bottom: 2px solid #b91c1c;
         }
-        .badge {
-            @apply inline-block bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-0.5 rounded-full;
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .badge-warn {
-            @apply inline-block bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full;
+        .step-connector::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -20px;
+            width: 20px;
+            height: 2px;
+            background-color: #e5e7eb;
+            z-index: 0;
+        }
+        .last-step::after {
+            display: none;
+        }
+        /* Hide scrollbar for clean horizontal scroll if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
+    <!-- Chosen Palette: Zen Travel - Warm Neutrals (#fdfbf7, #e5e7eb), Deep Japan Red (#b91c1c), Success Green (#10b981), Text Grey (#4a4a4a) -->
+    <!-- Application Structure Plan:
+        1. Executive Summary: High-level verdict of the idea.
+        2. Market Opportunity: Visualizing the 'Price Gap' (Muji example) to validate demand.
+        3. The 'Guild' Model: Interactive diagram explaining the Buyer-Platform-Seller ecosystem (RPG vs Business view).
+        4. Economy Simulation: JS Calculator allowing users to input item costs and see split profits/savings to test viability.
+        5. SWOT & Risk Analysis: Interactive grid detailing strengths (Logistics) vs Threats (Regulation).
+        6. Strategic Roadmap: Recommendations for launch.
+        Rationale: This structure moves from 'Why' (Market) to 'How' (Model) to 'Validation' (Simulation/SWOT), mirroring an investment pitch deck but interactive.
+    -->
+    <!-- Visualization & Content Choices:
+        1. Comparison Bar Chart: Visualizes the 500 TWD price gap clearly. (Inform/Compare)
+        2. Interactive Process Map: Steps (Select -> Travel -> Handover) to clarify the logistics model. (Organize)
+        3. Profit Calculator: Real-time calculation of fees/bonuses to prove financial incentive for sellers. (Change/Inform)
+        4. SWOT Quadrants: Clickable cards to reveal deep analysis. (Analyze)
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
-<body class="antialiased">
+<body class="flex flex-col min-h-screen">
 
-    <div class="container mx-auto max-w-7xl px-4 py-6 md:py-8">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-[#fdfbf7]/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <span class="text-2xl font-bold text-red-700">冒險者公會</span>
+                    <span class="text-xs text-gray-500 border border-gray-300 rounded px-2 py-0.5">商業評估報告</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <button onclick="scrollToSection('hero')" class="nav-link active text-gray-600 hover:text-red-700 px-3 py-2 text-sm font-medium transition-colors">總覽</button>
+                    <button onclick="scrollToSection('market')" class="nav-link text-gray-600 hover:text-red-700 px-3 py-2 text-sm font-medium transition-colors">市場痛點</button>
+                    <button onclick="scrollToSection('model')" class="nav-link text-gray-600 hover:text-red-700 px-3 py-2 text-sm font-medium transition-colors">公會模式</button>
+                    <button onclick="scrollToSection('simulation')" class="nav-link text-gray-600 hover:text-red-700 px-3 py-2 text-sm font-medium transition-colors">利潤試算</button>
+                    <button onclick="scrollToSection('analysis')" class="nav-link text-gray-600 hover:text-red-700 px-3 py-2 text-sm font-medium transition-colors">專家評估</button>
+                </div>
+                <!-- Mobile menu button stub -->
+                <div class="md:hidden">
+                    <button class="text-gray-600 hover:text-red-700 focus:outline-none">
+                        ☰
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
         
-        <!-- Header -->
-        <header class="text-center mb-8 md:mb-10">
-            <h1 class="text-3xl md:text-4xl font-bold text-teal-800 mb-2">北海道 & 青森：家庭無障礙之旅</h1>
-            <p class="text-base md:text-lg text-stone-600">為您與家人打造的 9 天 8 夜 舒適旅程</p>
-        </header>
+        <!-- Hero Section -->
+        <section id="hero" class="py-12 sm:py-20 bg-gradient-to-b from-[#fdfbf7] to-white">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
+                    讓代購變得很 <span class="text-red-700">Chill</span>
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                    基於「供需法則」與「冒險者公會」概念的旅日代購平台商業模式評估。<br>
+                    連接台灣買家的需求與旅日遊客的行李空間。
+                </p>
+                <div class="flex justify-center gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 w-40">
+                        <div class="text-3xl font-bold text-red-600 mb-1">High</div>
+                        <div class="text-sm text-gray-500">市場需求度</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 w-40">
+                        <div class="text-3xl font-bold text-green-600 mb-1">Unique</div>
+                        <div class="text-sm text-gray-500">商業模式</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 w-40">
+                        <div class="text-3xl font-bold text-blue-600 mb-1">Trust</div>
+                        <div class="text-sm text-gray-500">核心價值</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <!-- Navigation -->
-        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8 md:mb-10" id="main-nav">
-            <a class="nav-link active" data-content="home">行程總覽</a>
-            <a class="nav-link" data-content="itinerary">每日詳情</a>
-            <a class="nav-link" data-content="accommodation">住宿建議</a>
-            <a class="nav-link" data-content="transport">交通與餐食</a>
-            <a class="nav-link" data-content="accessibility">無障礙筆記</a>
-        </nav>
-
-        <!-- Main Content -->
-        <main>
-            <!-- Home / Overview -->
-            <section id="home" class="content-section active">
-                <div class="bg-white rounded-lg shadow-xl p-5 md:p-8">
-                    <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">旅程核心規劃</h2>
-                    <p class="text-stone-700 mb-6 text-base md:text-lg leading-relaxed">
-                        這次 9 天 8 夜的旅程，是專為包含需使用輪椅的父親所設計的。我們將重點放在<strong class="text-teal-800">舒適的步調</strong>、<strong class="text-teal-800">無障礙設施</strong>以及<strong class="text-teal-800">深度的在地體驗</strong>。全程將安排<strong class="font-semibold">福祉包車（無障礙計程車）</strong>，確保景點間的移動輕鬆無憂。行程已包含您指定的<strong class="font-semibold">洞爺湖</strong>，並會安排能欣賞絕佳湖景的無障礙飯店。
+        <!-- Market Opportunity -->
+        <section id="market" class="py-16 bg-white border-t border-gray-100">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="mb-10 text-center max-w-2xl mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">為什麼需要這個平台？</h2>
+                    <p class="text-gray-600">
+                        台灣人赴日旅遊已成常態，但商品價差依然巨大。私人代購存在信任風險與溝通成本。
+                        我們以 <span class="font-bold text-gray-800">MUJI 外套</span> 為例，分析其中的套利空間與價值主張。
                     </p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <div>
-                            <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4">行程重點參數</h3>
-                            <ul class="space-y-3 text-sm md:text-base">
-                                <li class="flex items-center">
-                                    <span class="text-xl mr-3">👨‍👩‍👧‍👦</span>
-                                    <span class="text-stone-700"><strong>成員：</strong> 4 位 (包含 1 位輪椅使用者)</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <span class="text-xl mr-3">📅</span>
-                                    <span class="text-stone-700"><strong>天數：</strong> 9 天 8 夜</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <span class="text-xl mr-3">♿</span>
-                                    <span class="text-stone-700"><strong>核心考量：</strong> 全程無障礙、步調放鬆</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <span class="text-xl mr-3">✈️</span>
-                                    <span class="text-stone-700"><strong>航班：</strong> 優先選擇長榮航空 (TPE ⇌ CTS / AOJ)</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <span class="text-xl mr-3">🚗</span>
-                                    <span class="text-stone-700"><strong>交通：</strong> 全程預約福祉包車</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <span class="text-xl mr-3">🦀</span>
-                                    <span class="text-stone-700"><strong>美食：</strong> 包含螃蟹會席料理</span>
-                                </li>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <!-- Chart Column -->
+                    <div class="bg-[#f9fafb] p-6 rounded-xl shadow-inner">
+                        <div class="chart-container">
+                            <canvas id="priceGapChart"></canvas>
+                        </div>
+                        <div class="text-center mt-4 text-sm text-gray-500">
+                            *數據基於提案中 MUJI 外套案例
+                        </div>
+                    </div>
+
+                    <!-- Insights Column -->
+                    <div class="space-y-6">
+                        <div class="bg-red-50 p-6 rounded-lg border-l-4 border-red-600">
+                            <h3 class="font-bold text-lg text-red-800 mb-2">痛點分析 (Pain Points)</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong class="text-gray-900">買家：</strong>找代購怕被騙、運費不透明、等待時間長。</li>
+                                <li><strong class="text-gray-900">賣家(旅人)：</strong>想補貼旅費但不想經營社群、不想處理繁瑣的金流與客服。</li>
                             </ul>
                         </div>
-                        <div>
-                            <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4 text-center">行程時間分配</h3>
-                            <div class="chart-container">
-                                <canvas id="tripChart"></canvas>
-                            </div>
-                            <p class="text-center text-stone-600 mt-2">行程將均衡分配在北海道與青森地區。</p>
+                        
+                        <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-600">
+                            <h3 class="font-bold text-lg text-green-800 mb-2">價值主張 (Value Proposition)</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong class="text-gray-900">平台擔保：</strong>透過中繼站驗貨，解決信任問題。</li>
+                                <li><strong class="text-gray-900">物流整合：</strong>賣家只需將貨交給國內據點，無需面對終端消費者。</li>
+                                <li><strong class="text-gray-900">動態定價：</strong>「冒險者獎勵」機制解決熱門商品供需失衡。</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- Daily Itinerary -->
-            <section id="itinerary" class="content-section">
-                <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">每日詳細行程</h2>
-                
-                <!-- Day Tabs -->
-                <div class="flex flex-wrap justify-center gap-1 mb-0" id="day-tabs">
-                    <button class="day-tab active" data-day="day1">Day 1</button>
-                    <button class="day-tab" data-day="day2">Day 2</button>
-                    <button class="day-tab" data-day="day3">Day 3</button>
-                    <button class="day-tab" data-day="day4">Day 4</button>
-                    <button class="day-tab" data-day="day5">Day 5</button>
-                    <button class="day-tab" data-day="day6">Day 6</button>
-                    <button class="day-tab" data-day="day7">Day 7</button>
-                    <button class="day-tab" data-day="day8">Day 8</button>
-                    <button class="day-tab" data-day="day9">Day 9</button>
-                </div>
-
-                <!-- Day 1 Content -->
-                <div id="day1" class="day-content active">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 1: 抵達札幌，城市初探</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 桃園機場 (TPE) → 新千歲機場 (CTS) → 札幌市區</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>搭乘長榮航空抵達新千歲機場 (CTS)。</li>
-                        <li>機場內有無障礙洗手間，出關流程順暢。</li>
-                        <li>預約的福祉包車司機將在出口迎接。</li>
-                        <li>前往札幌市區飯店辦理入住（推薦：札幌JR塔日航酒店，與車站共構，移動方便）。</li>
-<li>傍晚：前往<strong class="font-semibold">JR塔展望室 T38</strong>（電梯直達，輪椅可），欣賞札幌夜景。</li>
-                        <li>晚餐：<strong class="font-semibold">螃蟹本家 (駅前本店)</strong>，預約包廂座位，品嚐螃蟹會席料理（請預先告知有輪椅使用者）。</li>
-                        <li><span class="badge-warn">無障礙提示：</span> 機場至飯店全程無縫接軌。餐廳請務必預訂電梯可達的樓層或一樓座位。</li>
-                    </ul>
-                </div>
-
-                <!-- Day 2 Content -->
-                <div id="day2" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 2: 札幌經典 & 浪漫小樽</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 札幌市區 → 小樽市區</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>上午：包車遊覽札幌市區。</li>
-                        <li><strong class="font-semibold">大通公園</strong>：路面平坦，適合輪椅散步，欣賞電視塔外觀。</li>
-                        <li><strong class="font-semibold">北海道廳舊本廳舍</strong>：外部庭園平坦，建築外觀優美（內部部分區域可能有限制）。</li>
-                        <li><strong class="font-semibold">時計台</strong>：於外部拍照（內部為木造階梯，輪椅難以進入）。</li>
-                        <li>中午：於札幌市區享用湯咖哩（選擇一樓或有電梯的店家）。</li>
-                        <li>下午：搭乘包車前往小樽（車程約 1 小時）。</li>
-                        <li>傍晚：遊覽<strong class="font-semibold">小樽運河</strong>，運河沿岸步道平坦，風景極佳。</li>
-                        <li>晚餐：於小樽享用壽司或海鮮丼飯（選擇無障礙友善餐廳）。</li>
-                        <li>住宿：小樽 (例如：Hotel Nord Otaru，部分房型有無障礙設施)。</li>
-                    </ul>
-                </div>
-
-                <!-- Day 3 Content -->
-                <div id="day3" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 3: 洞爺湖 - 湖光山色</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 小樽 → 洞爺湖</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>上午：包車前往<strong class="font-semibold">洞爺湖</strong>（車程約 2 小時）。</li>
-                        <li>沿途可在休息站（如：中山峠）稍作休息，欣賞風景。</li>
-                        <li>中午：抵達洞爺湖，享用午餐。</li>
-                        <li>下午：入住指定飯店（<strong class="font-semibold">洞爺湖景乃之風度假酒店</strong>或<strong class="font-semibold">洞爺湖太陽宮殿度假酒店</strong>），指定湖景房與無障礙房型。</li>
-                        <li>在飯店內稍作休息，或至飯店外的<strong class="font-semibold">湖畔步道</strong>散步（步道平坦）。</li>
-                        <li>晚餐：於飯店內享用自助餐或會席料理。</li>
-                        <li>晚上：若體力允許，可於房間陽台欣賞洞爺湖的煙火（夏季限定）。</li>
-                        <li><span class="badge">住宿重點：</span> 乃之風 (Nonokaze) 的無障礙房型 (Universal Room) 評價極高，請務必提早預訂。</li>
-                    </ul>
-                </div>
-
-                <!-- Day 4 Content -->
-                <div id="day4" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 4: 洞爺湖深度 & 前往函館</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 洞爺湖 → 函館</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>上午：享受飯店的溫泉（若有無障礙湯屋或家族風呂）。</li>
-                        <li>搭乘包車前往<strong class="font-semibold">有珠山纜車</strong>。</li>
-                        <li><span class="badge-warn">無障礙提示：</span> 纜車站有電梯，山頂展望台有無障礙步道，可遠眺洞爺湖與昭和新山，非常推薦。</li>
-                        <li>中午：於洞爺湖周邊用餐。</li>
-                        <li>下午：搭乘包車前往函館（車程約 2.5 - 3 小時）。</li>
-                        <li>傍晚：入住函館飯店（推薦：La Vista 函館灣，鄰近灣區）。</li>
-                        <li>晚餐：於<strong class="font-semibold">金森紅磚倉庫群</strong>附近享用晚餐（倉庫群周邊路面平坦）。</li>
-                    </ul>
-                </div>
-
-                <!-- Day 5 Content -->
-                <div id="day5" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 5: 函館 - 歷史與夜景</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 函館市區</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>上午：包車前往<strong class="font-semibold">五稜郭塔</strong>。</li>
-                        <li>五稜郭塔有電梯直達展望台，可俯瞰星型城郭，全程無障礙。</li>
-                        <li><strong class="font-semibold">五稜郭公園</strong>：公園內步道多為平坦碎石路，輪椅推行需稍加留意，但主要區域可達。</li>
-                        <li>中午：品嚐函館鹽味拉麵（選擇一樓店家）。</li>
-                        <li>下午：遊覽<strong class="font-semibold">元町地區</strong>。</li>
-                        <li><span class="badge-warn">無障礙提示：</span> 元町多斜坡（坂道），包車可直接開至景點（如教會群）門口下車拍照，不需辛苦推輪椅上坡。</li>
-                        <li>傍晚：<strong class="font-semibold">函館山夜景</strong>。</li>
-                        <li>搭乘包車可<strong class="font-semibold">直接攻頂</strong>（特定時段交通管制，包車通常不受限，請司機確認），或搭乘纜車（纜車站有電梯，但旺季人多擁擠）。包車直達山頂對輪椅使用者最為友善。</li>
-                        <li>晚餐：於函館市區享用。</li>
-                    </ul>
-                </div>
-
-                <!-- Day 6 Content -->
-                <div id="day6" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 6: 跨越津輕海峽，前進青森</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 函館 → 青森</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>上午：<strong class="font-semibold">函館朝市</strong>。</li>
-                        <li>朝市內部走道平坦，可輕鬆逛街、品嚐海鮮。</li>
-                        <li>中午：於朝市享用海鮮丼飯。</li>
-                        <li>下午：包車前往「新函館北斗」站。</li>
-                        <li>搭乘<strong class="font-semibold">北海道新幹線</strong>前往「新青森」站（車程約 1 小時）。</li>
-                        <li><span class="badge">交通重點：</span> 新幹線有無障礙座位（輪椅席），請務必提早預訂。車站均有電梯和無障礙洗手間。</li>
-                        <li>抵達新青森站，與青森的福祉包車司機會合。</li>
-                        <li>前往青森市區飯店辦理入住（推薦：青森JAL城市酒店）。</li>
-                        <li>晚餐：於飯店附近享用。</li>
-                    </ul>
-                </div>
-
-                <!-- Day 7 Content -->
-                <div id="day7" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 7: 青森 - 睡魔與蘋果</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 青森市區</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>上午：包車前往<strong class="font-semibold">睡魔之家 WA RASSE</strong>。</li>
-                        <li>館內全程無障礙，可近距離欣賞巨大的睡魔燈籠，非常震撼。</li>
-                        <li>中午：於 WA RASSE 旁的<strong class="font-semibold">A-FACTORY</strong> 用餐。</li>
-                        <li>A-FACTORY 是一樓平房建築，販售蘋果西打酒與各種伴手禮，動線良好。</li>
-                        <li>下午：<strong class="font-semibold">青森縣立美術館</strong>（若對藝術有興趣）。</li>
-                        <li><span class="badge">無障礙提示：</span> 美術館為現代建築，無障礙設施完善，可欣賞奈良美智的「青森犬」。</li>
-                        <li>傍晚：返回飯店休息。</li>
-                        <li>晚餐：品嚐青森鄉土料理。</li>
-                    </ul>
-                </div>
-
-                <!-- Day 8 Content -->
-                <div id="day8" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 8: 青森 - 繩文歷史或奧入瀨溪</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 青森市郊</p>
-                    <p class="text-stone-700 mb-4 text-sm md:text-base"><strong>方案A (輕鬆歷史)：</strong></p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700 mb-4">
-                        <li>包車前往<strong class="font-semibold">三內丸山遺跡</strong>。</li>
-                        <li>園區廣大，有無障礙步道通往主要展館與大型立柱建築。</li>
-                        <li>繩文時遊館（博物館）內部設施完善。</li>
-                    </ul>
-                    <p class="text-stone-700 mb-4 text-sm md:text-base"><strong>方案B (自然景觀 - 需確認體力)：</strong></p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>包車前往<strong class="font-semibold">奧入瀨溪流</strong>（車程較遠，約 1.5 - 2 小時）。</li>
-                        <li><span class="badge-warn">無障礙提示：</span> 溪流沿岸步道並非完全平坦，輪椅難以全程行走。</li>
-                        <li><strong class="font-semibold">建議玩法：</strong> 採用「車覽」，請包車司機在幾個最著名的景點（如：銚子大瀑布、阿修羅之流）的停車處停靠，下車於觀景台欣賞。</li>
-                    </ul>
-                    <p class="text-stone-700 mt-4">建議選擇方案A，對輪椅使用者較為輕鬆。
-                </div>
-
-                <!-- Day 9 Content -->
-                <div id="day9" class="day-content">
-                    <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-3">Day 9: 滿載而歸</h3>
-                    <p class="mb-4 text-sm md:text-base"><strong>路線：</strong> 青森市區 → 青森機場 (AOJ) → 桃園 (TPE)</p>
-                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                        <li>上午：在飯店悠閒享用早餐，整理行李。</li>
-                        <li>可至飯店附近的商店進行最後的採買。</li>
-                        <li>中午：享用在青森的最後一餐。</li>
-                        <li>下午：搭乘福祉包車前往青森機場 (AOJ)。</li>
-                        <li>青森機場規模不大，有無障礙設施。</li>
-                        <li>搭乘長榮航空直飛航班返回桃園 (TPE)，結束愉快的家庭之旅。</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- Accommodation -->
-            <section id="accommodation" class="content-section">
-                <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">住宿建議 (無障礙優先)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- The Guild Model -->
+        <section id="model" class="py-16 bg-[#fdfbf7]">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">運作模式：冒險者公會</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        本平台將繁瑣的代購流程遊戲化。買家發布委託，賣家（冒險者）接取任務。
+                        <br>請點擊下方步驟查看詳細運作邏輯。
+                    </p>
                     
-                    <div class="card">
-                        <img src="https://placehold.co/600x400/319795/FFFFFF?text=洞爺湖景" alt="洞爺湖" class="w-full h-48 object-cover">
-                        <div class="p-5 md:p-6">
-                            <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-2">洞爺湖景乃之風度假酒店</h3>
-                            <span class="badge mb-3">洞爺湖 (首選)</span>
-                            <p class="text-stone-700 mb-4 text-sm md:text-base">滿足您「湖景第一排」的需求。這間飯店擁有<strong class="font-semibold">頂級的湖景</strong>，並且提供專門的<strong class="font-semibold">無障礙房型 (Universal Room)</strong>，房間寬敞且浴室設施完善。請務必提早預訂此房型。</p>
-                        </div>
+                    <div class="mt-6 inline-flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                        <button id="view-business" class="px-4 py-2 rounded-md text-sm font-medium bg-red-100 text-red-700 transition-all" onclick="toggleView('business')">商業視角</button>
+                        <button id="view-rpg" class="px-4 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 transition-all" onclick="toggleView('rpg')">RPG 視角</button>
                     </div>
-
-                    <div class="card">
-                        <img src="https://placehold.co/600x400/4A5568/FFFFFF?text=札幌市景" alt="札幌" class="w-full h-48 object-cover">
-                        <div class="p-5 md:p-6">
-                            <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-2">札幌JR塔日航酒店</h3>
-                            <span class="badge mb-3">札幌</span>
-                            <p class="text-stone-700 mb-4 text-sm md:text-base">與 JR 札幌站共構，交通便利性無可挑剔。飯店有無障礙房型，且通往車站、百貨公司均有<strong class="font-semibold">室內無障礙通道</strong>，不受天氣影響，非常適合輪椅使用者。</p>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <img src="https://placehold.co/600x400/9B2C2C/FFFFFF?text=函館灣景" alt="函館" class="w-full h-48 object-cover">
-                        <div class="p-5 md:p-6">
-                            <h3 class="text-lg md:text-xl font-bold text-teal-800 mb-2">La Vista 函館灣</h3>
-                            <span class="badge mb-3">函館</span>
-                            <p class="text-stone-700 mb-4 text-sm md:text-base">位於金森紅磚倉庫旁，地點絕佳。飯店有無障礙房型，且以<strong class="font-semibold">豐盛的早餐</strong>聞名。周邊景點（灣區）路面平坦，方便散步。</p>
-                        </div>
-                    </div>
-
                 </div>
-            </section>
 
-            <!-- Transport & Dining -->
-            <section id="transport" class="content-section">
-                <h2 class="text-2xl font-semibold text-teal-700 mb-6 text-center">交通與餐食重點</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-lg shadow-xl p-5 md:p-6">
-                        <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4 flex items-center">
-                            <span class="text-3xl mr-3">🚗</span> 交通：福祉包車
+                <!-- Process Flow -->
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
+                    <!-- Step 1 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover cursor-pointer group" onclick="showStepDetail(1)">
+                        <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">📝</div>
+                        <h3 class="font-bold text-lg mb-2 step-title" data-biz="1. 買家下單" data-rpg="發布委託書">1. 買家下單</h3>
+                        <p class="text-sm text-gray-500 step-desc" data-biz="選擇商品並支付款項" data-rpg="懸賞金與任務內容"></p>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover cursor-pointer group" onclick="showStepDetail(2)">
+                        <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">✈️</div>
+                        <h3 class="font-bold text-lg mb-2 step-title" data-biz="2. 賣家接單" data-rpg="冒險者接單">2. 賣家接單</h3>
+                        <p class="text-sm text-gray-500 step-desc" data-biz="旅日途中購買指定商品" data-rpg="前往副本獲取戰利品"></p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover cursor-pointer group" onclick="showStepDetail(3)">
+                        <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">📦</div>
+                        <h3 class="font-bold text-lg mb-2 step-title" data-biz="3. 國內交貨" data-rpg="回公會回報">3. 國內交貨</h3>
+                        <p class="text-sm text-gray-500 step-desc" data-biz="回台後寄送至平台據點" data-rpg="交付戰利品給櫃檯"></p>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover cursor-pointer group" onclick="showStepDetail(4)">
+                        <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">🔍</div>
+                        <h3 class="font-bold text-lg mb-2 step-title" data-biz="4. 平台驗收" data-rpg="鑑定師鑑定">4. 平台驗收</h3>
+                        <p class="text-sm text-gray-500 step-desc" data-biz="檢核商品品質與包裝" data-rpg="確認寶物真偽與狀態"></p>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover cursor-pointer group" onclick="showStepDetail(5)">
+                        <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">💰</div>
+                        <h3 class="font-bold text-lg mb-2 step-title" data-biz="5. 撥款出貨" data-rpg="發放賞金">5. 撥款出貨</h3>
+                        <p class="text-sm text-gray-500 step-desc" data-biz="買家收貨，賣家收款" data-rpg="任務完成，獲得報酬"></p>
+                    </div>
+                </div>
+
+                <!-- Dynamic Detail Box -->
+                <div id="step-detail-box" class="mt-8 bg-white p-6 rounded-xl border-l-4 border-gray-300 shadow-sm transition-all duration-300">
+                    <h4 class="text-xl font-bold text-gray-800 mb-2">點擊上方步驟查看細節</h4>
+                    <p class="text-gray-600">了解每個環節中，平台如何創造價值與降低風險。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Simulation Section -->
+        <section id="simulation" class="py-16 bg-white border-t border-gray-100">
+            <div class="max-w-4xl mx-auto px-4">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">財務模型試算</h2>
+                    <p class="text-gray-600">
+                        這個模式真的能運作嗎？讓我們實際算算看。<br>
+                        輸入日本定價與台灣定價，看看買賣雙方的誘因是否足夠。
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="grid md:grid-cols-2">
+                        <!-- Inputs -->
+                        <div class="p-8 bg-gray-50">
+                            <h3 class="text-lg font-bold text-gray-700 mb-6">參數設定</h3>
+                            
+                            <div class="space-y-5">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">日本退稅價 (JPY)</label>
+                                    <input type="number" id="jpPrice" value="5990" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
+                                    <p class="text-xs text-gray-500 mt-1">例如: Uniqlo 羽絨外套</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">匯率 (JPY to TWD)</label>
+                                    <input type="number" id="exchangeRate" value="0.22" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">台灣專櫃價 (TWD)</label>
+                                    <input type="number" id="twPrice" value="2490" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">冒險者 Bonus 加給 (TWD)</label>
+                                    <input type="range" id="bonusRange" min="0" max="500" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                        <span>$0</span>
+                                        <span id="bonusValue" class="font-bold text-red-600">+$100</span>
+                                        <span>$500</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results -->
+                        <div class="p-8 flex flex-col justify-center relative">
+                            <div class="absolute top-4 right-4 bg-gray-100 text-xs px-2 py-1 rounded">平台手續費假設: 10%</div>
+                            
+                            <!-- Buyer Result -->
+                            <div class="mb-8 p-4 bg-green-50 rounded-xl border border-green-100">
+                                <h4 class="text-sm font-semibold text-green-800 uppercase tracking-wider mb-2">買家視角 (Buyer)</h4>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <div class="text-3xl font-bold text-gray-800" id="finalBuyerPrice">NT$ 1,650</div>
+                                        <div class="text-sm text-green-600 font-medium">比台灣專櫃省下 <span id="savings">NT$ 840</span></div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-gray-500">含商品成本、手續費、Bonus</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Seller Result -->
+                            <div class="p-4 bg-red-50 rounded-xl border border-red-100">
+                                <h4 class="text-sm font-semibold text-red-800 uppercase tracking-wider mb-2">賣家視角 (Adventurer)</h4>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <div class="text-3xl font-bold text-gray-800" id="sellerProfit">NT$ 232</div>
+                                        <div class="text-sm text-red-600 font-medium">利潤率 <span id="margin">17%</span></div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-gray-500">已扣除購買成本</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="calculateSimulation()" class="mt-6 w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                                更新試算
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-center text-sm text-gray-500">
+                    *註：此模型尚未包含國內物流運費，僅計算商品買賣利差結構。
+                </div>
+            </div>
+        </section>
+
+        <!-- Analysis Section -->
+        <section id="analysis" class="py-16 bg-[#fdfbf7]">
+            <div class="max-w-6xl mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">專家綜合評估 (SWOT & Advice)</h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Strengths -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-blue-500">
+                        <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
+                            <span class="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-sm mr-3">優勢</span>
+                            信任機制與懶人經濟
                         </h3>
-                        <p class="text-stone-700 mb-4 text-sm md:text-base">考量父親的狀況，<strong class="font-semibold">全程使用「福祉包車」是最佳選擇</strong>。這種車輛配有升降梯或斜坡板，可讓輪椅直接上下車，免去換乘的辛勞。</p>
-                        <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                            <li><strong class="font-semibold">預訂：</strong> 必須提早（至少一個月前）預訂。可透過日本當地的包車公司網站或專業旅遊平台預訂。</li>
-                            <li><strong class="font-semibold">車種：</strong> 預訂時請說明輪椅尺寸，以及包含輪椅在內的總人數與行李件數，以確保安排合適車輛 (如 Toyota Alphard Welcab 或 Hiace Welcab)。</li>
-                            <li><strong class="font-semibold">跨區：</strong> 函館到青森的移動，推薦搭乘新幹線（無障礙座位），比包車拉車更快速舒適。</li>
-                        </ul>
+                        <p class="text-gray-600 mb-4">
+                            你們解決了C2C交易最大的痛點——「信任」與「物流」。對於賣家而言，省去了「經營」的成本，這是極大的誘因。對於買家，有平台與金流（綠界）把關，降低了詐騙風險。
+                        </p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-500 h-2.5 rounded-full" style="width: 85%"></div>
+                        </div>
+                        <p class="text-right text-xs text-gray-500 mt-1">可行性評分: 8.5/10</p>
                     </div>
-                    <div class="bg-white rounded-lg shadow-xl p-5 md:p-6">
-                        <h3 class="text-lg md:text-xl font-semibold text-stone-800 mb-4 flex items-center">
-                            <span class="text-3xl mr-3">🦀</span> 餐食：螃蟹與無障礙
-                        </h3>
-                        <p class="text-stone-700 mb-4 text-sm md:text-base">品嚐美食是旅程重點，但無障礙考量同樣重要。</p>
-                        <ul class="list-disc list-inside space-y-2 text-sm md:text-base text-stone-700">
-                            <li><strong class="font-semibold">螃蟹料理 (札幌)：</strong> 推薦「螃蟹本家」或「蟹將軍」。預訂時，請<strong class="font-semibold">指定「一樓座位」或「有電梯可達的樓層」</strong>，並告知有輪椅使用者，他們通常會安排空間較大的桌位或包廂。</li>
-                            <li><strong class="font-semibold">餐廳選擇：</strong> 盡量選擇飯店內的餐廳、大型商場的美食街，或現代建築內（如 A-FACTORY）的餐廳，這些地方的無障礙設施通常最完善。</li>
-                            <li><strong class="font-semibold">預約：</strong> 晚餐強烈建議都先預約，並在預約時註明無障礙需求。</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Accessibility Notes -->
-            <section id="accessibility" class="content-section">
-                <h2 class="text-2xl font-semibold text-red-700 mb-6 text-center">無障礙重要筆記</h2>
-                <div class="bg-red-50 border border-red-200 rounded-lg shadow-xl p-5 md:p-8">
-                    <p class="text-base md:text-lg text-red-800 mb-6">這趟旅程的成敗關鍵在於對「無障礙」細節的掌握。請務必將以下事項放在心上：</p>
-                    <ul class="space-y-4">
-                        <li class="flex items-start">
-                            <span class="text-2xl mr-3 pt-1">1.</span>
-                            <div>
-                                <h4 class="font-semibold text-red-900 text-base md:text-lg">飯店預訂：不要只訂「標準房」</h4>
-                                <p class="text-red-700 text-sm md:text-base">日本飯店的標準房通常非常狹窄，輪椅無法進入浴室。您必須<strong class="font-semibold">明確預訂「無障礙房 (Universal Room / Accessible Room)」</strong>。若無此房型，至少要預訂空間最大的「角落房」，並去信詢問浴室門檻高度與寬度。</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-2xl mr-3 pt-1">2.</span>
-                            <div>
-                                <h4 class="font-semibold text-red-900 text-base md:text-lg">洗手間：多利用「多功能廁所」</h4>
-                                <p class="text-red-700 text-sm md:text-base">日本的車站、機場、百貨公司、高速公路休息站和大型觀光景點，幾乎都設有<strong class="font-semibold">「多目的トイレ」</strong>（多功能洗手間）。這些洗手間空間寬敞，設施齊全，是輪椅使用者的首選。</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-2xl mr-3 pt-1">3.</span>
-                            <div>
-                                <h4 class="font-semibold text-red-900 text-base md:text-lg">景點：確認「最後一哩路」</h4>
-                                <p class="text-red-700 text-sm md:text-base">許多景點（如神社、部分公園）主要入口有電梯，但內部可能充滿<strong class="font-semibold">碎石路或階梯</strong>。例如元町的斜坡、五稜郭公園的碎石路。利用包車<strong class="font-semibold">「點對點」</strong>停靠在最近的入口，是減少體力消耗的關鍵。</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-2xl mr-3 pt-1">4.</span>
-                            <div>
-                                <h4 class="font-semibold text-red-900 text-base md:text-lg">新幹線：務必預訂「輪椅席」</h4>
-                                <p class="text-red-700 text-sm md:text-base">從函館到青森的新幹線，請務必提早（一個月前開放預訂時）透過 JR 官網或窗口預訂<strong class="font-semibold">「輪椅對應座位」</strong>。這些座位通常在特定車廂，空間較大，且緊鄰無障礙洗手間。</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </section>
 
-        </main>
-    </div>
+                    <!-- Weaknesses -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-orange-500">
+                        <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
+                            <span class="bg-orange-100 text-orange-800 py-1 px-3 rounded-full text-sm mr-3">劣勢</span>
+                            物流成本與利潤擠壓
+                        </h3>
+                        <p class="text-gray-600 mb-4">
+                            國內運費（店到店約$60）加上平台營運成本（驗貨人力、倉儲），對於「低單價」商品（如零食）非常不利。如果一件外套利潤只有200元，扣掉運費剩餘不多，賣家誘因會下降。
+                        </p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-orange-500 h-2.5 rounded-full" style="width: 60%"></div>
+                        </div>
+                        <p class="text-right text-xs text-gray-500 mt-1">風險指數: High for Low-Value Items</p>
+                    </div>
+
+                    <!-- Opportunities -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-green-500">
+                        <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
+                            <span class="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm mr-3">機會</span>
+                            限定商品與許願池
+                        </h3>
+                        <p class="text-gray-600 mb-4">
+                            「加價Bonus」機制非常適合限量、排隊商品（如吉伊卡哇、限定動漫周邊）。這類商品買家價格敏感度低，賣家利潤高。平台應主打這類「非標品」或「熱門缺貨品」。
+                        </p>
+                    </div>
+
+                    <!-- Threats -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-red-500">
+                        <h3 class="flex items-center text-xl font-bold text-gray-800 mb-4">
+                            <span class="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm mr-3">威脅</span>
+                            法律與海關
+                        </h3>
+                        <p class="text-gray-600 mb-4">
+                            需注意台灣海關對於「頻繁入境攜帶貨物」的規範。若賣家被認定為商業行為，可能會被補稅。此外，藥事法規定某些藥妝不能代購，需嚴格審核商品列表。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Final Verdict Box -->
+                <div class="mt-12 bg-gray-900 text-white p-8 rounded-xl text-center">
+                    <h3 class="text-2xl font-bold mb-4">總結建議</h3>
+                    <p class="text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                        這是一個非常有潛力的商業模式，切中了台灣人愛去日本與愛買日貨的雙重需求。
+                        <br><br>
+                        <strong>核心建議：</strong>初期不要做「全品項」，應專注於<strong>「高價差、體積小、不易碎」</strong>的商品（如服飾、限定小物）。
+                        避免低單價零食（體積大、利潤低）。強化「許願池」功能，讓市場自動透過 Bonus 機制篩選出值得帶的商品。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-50 border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>&copy; 2024 冒險者公會 Project Evaluation. Created for Strategic Analysis.</p>
+        </div>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // State for Step Visualization
+        const stepDetails = {
+            1: {
+                title: "買家發布委託 / 懸賞任務",
+                content: "買家在平台瀏覽商品庫或提出『許願』。系統會計算預估總價（含商品原價、平台服務費）。買家可選擇是否增加『Bonus 賞金』來吸引旅人優先接單。此階段買家需先預授權信用卡或支付訂金，確保訂單真實性。",
+                icon: "📝"
+            },
+            2: {
+                title: "賣家接單 / 冒險者出發",
+                content: "即將前往日本的旅人（賣家）在 APP 上瀏覽待接取的任務。他們可以根據自己的行程（去東京或大阪）、行李剩餘空間來選擇合適的訂單。接單後，系統會鎖定該任務，避免重複接單。",
+                icon: "✈️"
+            },
+            3: {
+                title: "國內交貨 / 回報公會",
+                content: "賣家回台後，不需要自己面對買家（省去面交、私訊的麻煩）。只需將商品打包，透過超商寄送或親自送至平台在北中南的集貨中心（公會據點）。",
+                icon: "📦"
+            },
+            4: {
+                title: "平台驗收 / 鑑定戰利品",
+                content: "平台工作人員收到貨物後進行驗收：確認商品型號、尺寸、數量是否與訂單相符，檢查外觀是否無損。此步驟是平台核心價值的體現——『信任中介』。",
+                icon: "🔍"
+            },
+            5: {
+                title: "撥款與出貨 / 完成任務",
+                content: "驗收通過後，平台透過物流將商品寄給買家。同時，系統結算費用：扣除平台手續費後，將商品代墊款 + Bonus 賞金轉入賣家帳戶。交易結束。",
+                icon: "💰"
+            }
+        };
+
+        // DOM Elements
+        const detailBox = document.getElementById('step-detail-box');
+        let currentMode = 'business'; // 'business' or 'rpg'
+
+        // --- Core Interactions ---
+
+        function toggleView(mode) {
+            currentMode = mode;
             
-            // Main Navigation
-            const mainNav = document.getElementById('main-nav');
-            const mainContentSections = document.querySelectorAll('.content-section');
+            // Update Button Styles
+            const btnBiz = document.getElementById('view-business');
+            const btnRpg = document.getElementById('view-rpg');
             
-            mainNav.addEventListener('click', function(e) {
-                if (e.target.classList.contains('nav-link')) {
-                    e.preventDefault();
-                    
-                    mainNav.querySelector('.nav-link.active').classList.remove('active');
-                    e.target.classList.add('active');
-                    
-                    const contentId = e.target.getAttribute('data-content');
-                    
-                    mainContentSections.forEach(section => {
-                        section.classList.remove('active');
-                        if (section.id === contentId) {
-                            section.classList.add('active');
-                        }
-                    });
-                }
+            if (mode === 'business') {
+                btnBiz.className = "px-4 py-2 rounded-md text-sm font-medium bg-red-100 text-red-700 transition-all shadow-sm";
+                btnRpg.className = "px-4 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 transition-all";
+            } else {
+                btnRpg.className = "px-4 py-2 rounded-md text-sm font-medium bg-blue-100 text-blue-700 transition-all shadow-sm";
+                btnBiz.className = "px-4 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 transition-all";
+            }
+
+            // Update Text Content
+            document.querySelectorAll('.step-title').forEach(el => {
+                el.textContent = el.getAttribute(`data-${mode}`);
             });
-
-            // Day Itinerary Tabs
-            const dayTabs = document.getElementById('day-tabs');
-            const dayContents = document.querySelectorAll('.day-content');
-
-            dayTabs.addEventListener('click', function(e) {
-                if (e.target.classList.contains('day-tab')) {
-                    dayTabs.querySelector('.day-tab.active').classList.remove('active');
-                    e.target.classList.add('active');
-                    
-                    const dayId = e.target.getAttribute('data-day');
-                    
-                    dayContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === dayId) {
-                            content.classList.add('active');
-                        }
-                    });
-                }
+            document.querySelectorAll('.step-desc').forEach(el => {
+                el.textContent = el.getAttribute(`data-${mode}`);
             });
+        }
 
-            // Chart.js Doughnut Chart
-            const ctx = document.getElementById('tripChart').getContext('2d');
-            const tripChart = new Chart(ctx, {
-                type: 'doughnut',
+        function showStepDetail(stepNum) {
+            const data = stepDetails[stepNum];
+            // Simple fade animation effect
+            detailBox.style.opacity = '0.5';
+            setTimeout(() => {
+                detailBox.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl bg-gray-100 p-2 rounded-full">${data.icon}</div>
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${data.title}</h4>
+                            <p class="text-gray-600 leading-relaxed">${data.content}</p>
+                        </div>
+                    </div>
+                `;
+                // Determine border color based on step
+                const colors = ['border-gray-300', 'border-blue-500', 'border-green-500', 'border-yellow-500', 'border-red-500'];
+                detailBox.className = `mt-8 bg-white p-6 rounded-xl border-l-4 ${colors[stepNum-1] || 'border-gray-300'} shadow-sm transition-all duration-300`;
+                detailBox.style.opacity = '1';
+            }, 200);
+        }
+
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+                // Update active nav link
+                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+        }
+
+        // --- Calculator Logic ---
+
+        function calculateSimulation() {
+            // Inputs
+            const jpPrice = parseFloat(document.getElementById('jpPrice').value) || 0;
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 0.22;
+            const twPrice = parseFloat(document.getElementById('twPrice').value) || 0;
+            const bonus = parseInt(document.getElementById('bonusRange').value) || 0;
+            
+            // Constants
+            const platformFeeRate = 0.10; // 10%
+            
+            // Calculations
+            const costInTWD = jpPrice * exchangeRate;
+            const platformFee = costInTWD * platformFeeRate;
+            
+            // Buyer pays: Item Cost + Platform Fee + Bonus
+            const totalBuyerPays = Math.round(costInTWD + platformFee + bonus);
+            
+            // Savings
+            const savings = twPrice - totalBuyerPays;
+            
+            // Seller gets: Item Cost (reimbursement) + Bonus
+            // Seller profit is purely the Bonus (in this simplified model, assuming card points/tax refund cover their effort too, but let's stick to the prompt's bonus logic plus maybe tax refund diff)
+            // Actually, usually sellers keep tax refund (10%) + Bonus.
+            // Let's assume user keeps tax refund invisible here, or user buys tax free.
+            // The prompt says "Bonus" is the extra earning.
+            // Let's refine: Seller Profit = Bonus + (Maybe Credit Card Rewards approx 3% - ignored for simplicity)
+            // Wait, the prompt says "Deduct cost then transfer to seller".
+            // So Seller Revenue = Buyer Payment - Platform Fee.
+            // Seller Cost = Item Cost.
+            // Profit = Revenue - Cost = (ItemCost + Fee + Bonus) - Fee - ItemCost = Bonus.
+            // BUT, usually these platforms split the Fee or the Fee is on top.
+            // Let's assume: Buyer Price = (Item Price * Rate) + Service Fee + Bonus.
+            // Seller receives: (Item Price * Rate) + Bonus.
+            // Seller Profit = Bonus. 
+            // *Wait*, implies the 1290 vs 1790 gap.
+            // 1290 is cost. 1790 is retail. Gap 500.
+            // If Buyer pays 1500. Savings 290.
+            // 1500 = 1290 + 210 (Fee + Bonus).
+            
+            const sellerProfit = bonus; 
+            const margin = Math.round((sellerProfit / costInTWD) * 100);
+
+            // Update DOM
+            document.getElementById('finalBuyerPrice').textContent = `NT$ ${totalBuyerPays.toLocaleString()}`;
+            document.getElementById('savings').textContent = `NT$ ${savings.toLocaleString()}`;
+            document.getElementById('sellerProfit').textContent = `NT$ ${sellerProfit.toLocaleString()}`;
+            document.getElementById('margin').textContent = `${margin}%`;
+            document.getElementById('bonusValue').textContent = `+$${bonus}`;
+
+            // Visual feedback on savings
+            const savingsEl = document.getElementById('savings');
+            if (savings < 0) {
+                savingsEl.classList.remove('text-green-600');
+                savingsEl.classList.add('text-red-600');
+                savingsEl.textContent = `(貴了 NT$ ${Math.abs(savings).toLocaleString()})`;
+            } else {
+                savingsEl.classList.remove('text-red-600');
+                savingsEl.classList.add('text-green-600');
+            }
+        }
+
+        // Init Calculator Listener
+        document.getElementById('bonusRange').addEventListener('input', calculateSimulation);
+        document.getElementById('jpPrice').addEventListener('input', calculateSimulation);
+        document.getElementById('exchangeRate').addEventListener('input', calculateSimulation);
+
+        // --- Charts Initialization ---
+
+        window.onload = function() {
+            // 1. Price Gap Chart
+            const ctxPrice = document.getElementById('priceGapChart').getContext('2d');
+            new Chart(ctxPrice, {
+                type: 'bar',
                 data: {
-                    labels: ['北海道 (札幌, 小樽, 洞爺湖, 函館)', '青森地區'],
+                    labels: ['日本退稅價', '本平台預估價', '台灣專櫃價'],
                     datasets: [{
-                        label: '行程天數分配',
-                        data: [5, 4], 
+                        label: '價格 (TWD)',
+                        data: [1290, 1550, 1790], // Example data based on Muji jacket
                         backgroundColor: [
-                            'rgba(15, 118, 110, 0.8)', // teal-700
-                            'rgba(217, 119, 6, 0.8)'   // amber-600
+                            'rgba(209, 213, 219, 0.8)', // Grey (Base)
+                            'rgba(220, 38, 38, 0.8)',   // Red (Platform - Hero)
+                            'rgba(75, 85, 99, 0.8)'     // Dark Grey (Retail)
                         ],
                         borderColor: [
-                            '#FFFCF5',
-                            '#FFFCF5'
+                            'rgb(209, 213, 219)',
+                            'rgb(220, 38, 38)',
+                            'rgb(75, 85, 99)'
                         ],
-                        borderWidth: 3
+                        borderWidth: 1,
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    family: "'Noto Sans TC', sans-serif"
-                                }
-                            }
-                        },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.label || '';
+                                    let label = context.dataset.label || '';
                                     if (label) {
-                                        label += '：';
+                                        label += ': ';
                                     }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + ' 天';
+                                    if (context.parsed.y !== null) {
+                                        label += 'NT$ ' + context.parsed.y;
                                     }
                                     return label;
                                 }
                             }
+                        },
+                        title: {
+                            display: true,
+                            text: 'MUJI 外套價格結構比較',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { display: false }
+                        },
+                        x: {
+                            grid: { display: false }
                         }
                     }
                 }
             });
 
-        });
-    </script>
+            // Initial calc
+            calculateSimulation();
+            
+            // Set initial detail
+            showStepDetail(1);
+        };
 
+    </script>
 </body>
 </html>
