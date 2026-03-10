@@ -2,624 +2,724 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冒險者公會：旅日代購平台商業評估報告</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>商品編號標記工具 - 單頁版</title>
     <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #fcfaf7;
-            color: #1f2937;
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f4f4f5;
+            --card: #ffffff;
+            --text: #18181b;
+            --text-muted: #71717a;
+            --border: #e4e4e7;
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
-        }
-        .guild-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .guild-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .gradient-red {
-            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
-        }
-    </style>
-    <!-- Chosen Palette: Guild Crimson (#b91c1c), Antique White (#fcfaf7), Slate Grey (#1f2937), Success Green (#059669) -->
-    <!-- Application Structure Plan:
-        1. Executive Context: Defining the "Japan-Taiwan" travel trend and price gap.
-        2. Market Analysis: Visualizing price arbitrage through the "無印良品" use case.
-        3. Operational Logic: The "Adventurer's Guild" model interaction (Buyer/Seller/Guild).
-        4. Financial Simulation: A dynamic calculator showing profit distribution for all parties.
-        5. Guarantee Mechanism: Explaining the deposit and inventory resale system to mitigate risk.
-        6. Strategic Analysis: SWOT and Expert Recommendations for scaling.
-    -->
-    <!-- Visualization & Content Choices:
-        - Price Arbitrage Bar Chart: Visualizing the gap in 無印良品 pricing.
-        - Process Flow: Interactive steps for the platform's supply-demand cycle.
-        - Profit Calculator: Dynamic calculation of Platform revenue, Seller bonus, and Buyer savings.
-        - Default Scenarios: Explaining the "Deposit + Resale" profitability.
-        CONFIRMATION: NO SVG/Mermaid used.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-</head>
-<body class="flex flex-col min-h-screen">
 
-    <!-- Navigation -->
-    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 gradient-red rounded-md flex items-center justify-center text-white font-bold text-xl">公</div>
-                    <span class="text-xl font-bold text-gray-900 tracking-tight">冒險者公會 <span class="text-sm font-normal text-gray-500">| 商業想法評估</span></span>
-                </div>
-                <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-600">
-                    <a href="#market" class="hover:text-red-700">市場潛力</a>
-                    <a href="#logic" class="hover:text-red-700">運作邏輯</a>
-                    <a href="#profit" class="hover:text-red-700">獲利試算</a>
-                    <a href="#guarantee" class="hover:text-red-700">保障機制</a>
-                    <a href="#profit-scenarios" class="hover:text-red-700">獲利預測</a>
-                    <a href="#advice" class="hover:text-red-700">專家建議</a>
-                    <a href="#strategic-dashboard" class="hover:text-red-700">戰略藍圖</a>
-                    
-                </div>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            height: 56px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            items-center: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        /* Main Layout */
+        main {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Viewport */
+        #viewport {
+            flex: 1;
+            background: #e2e8f0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #image-container {
+            position: relative;
+            display: inline-block;
+            transform-origin: center;
+            transition: transform 0.1s ease-out;
+            cursor: crosshair;
+        }
+
+        #display-image {
+            max-height: 85vh;
+            max-width: 90vw;
+            display: block;
+            pointer-events: none;
+            user-select: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .marker {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: rgba(0,0,0,0.75);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        .marker.selected {
+            background: var(--primary);
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 20;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 320px;
+            background: var(--card);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 150;
+            transform: translateX(100%);
+        }
+
+        #sidebar.open {
+            transform: translateX(0);
+        }
+
+        @media (min-width: 768px) {
+            #sidebar {
+                position: relative;
+                transform: translateX(0);
+            }
+            .mobile-only { display: none; }
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .prefix-section {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .label-small {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        .item-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .item-card.selected {
+            border-color: var(--primary);
+            background: #f5f3ff;
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .item-badge {
+            width: 28px;
+            height: 28px;
+            background: var(--text);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .btn-delete:hover { color: #ef4444; }
+
+        .price-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .price-input-wrapper::before {
+            content: '$';
+            position: absolute;
+            left: 12px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .price-input-wrapper input {
+            padding-left: 24px;
+        }
+
+        /* Footer Output */
+        .sidebar-footer {
+            padding: 16px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+        }
+
+        #output-text {
+            width: 100%;
+            height: 80px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            resize: none;
+            margin-top: 8px;
+        }
+
+        /* Controls */
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 50;
+        }
+
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .control-btn:active { background: #f1f5f9; transform: scale(0.95); }
+
+        /* Empty State */
+        #empty-state {
+            text-align: center;
+            padding: 40px;
+        }
+
+        #empty-state p { color: var(--text-muted); margin-top: 12px; }
+
+        .hidden { display: none !important; }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        #toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <div class="logo-icon">+</div>
+            <span>Marker</span>
+        </div>
+        <div class="actions">
+            <button id="btn-upload" class="btn btn-secondary">
+                <span>📁</span> <span class="sm-hide">上傳</span>
+            </button>
+            <button id="btn-toggle-list" class="btn btn-secondary relative">
+                <span>📋</span>
+                <span id="badge-count" class="hidden" style="position:absolute; top:-5px; right:-5px; background:var(--primary); color:white; font-size:9px; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center;">0</span>
+            </button>
+            <button id="btn-download" class="btn btn-primary hidden">
+                <span>💾</span> <span class="sm-hide">下載圖片</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div id="viewport">
+            <div id="upload-prompt" style="text-align:center; cursor:pointer;">
+                <div style="font-size:48px; color:#cbd5e1; margin-bottom:16px;">🖼️</div>
+                <p style="font-weight:600; color:#64748b;">點擊上傳商品照片</p>
+                <p style="font-size:12px; color:#94a3b8; margin-top:4px;">支援 JPG, PNG</p>
+            </div>
+            <div id="image-container" class="hidden">
+                <img id="display-image" src="" alt="">
+                <!-- Markers will be added here -->
+            </div>
+
+            <div class="zoom-controls hidden" id="controls">
+                <button class="control-btn" onclick="zoom(0.2)">+</button>
+                <button class="control-btn" onclick="zoom(-0.2)">-</button>
+                <button class="control-btn" onclick="resetZoom()" style="font-size:10px;">1:1</button>
             </div>
         </div>
-    </nav>
 
-    <main class="flex-grow">
-        <!-- Hero Section -->
-        <section class="py-16 px-4 bg-white text-center">
-            <div class="max-w-4xl mx-auto">
-                <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
-                    將旅遊與代購完美結合的<br><span class="text-red-700 italic">「冒險者公會」</span>模式
-                </h1>
-                <p class="text-lg text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-                    利用旅日台灣遊客的閒置行李空間，創造全新的代購服務體驗。<br>我們透過獨創的「公會制」提供金流與檢核保障，<br>讓代購變得很Chill，讓交易充滿安全感，<br>並透過訂金機制將棄單風險轉化為高額庫存收益。
-                </p>
-                <div class="flex justify-center gap-4">
-                    <div class="px-6 py-3 bg-gray-900 text-white rounded-full font-bold shadow-lg">商業模型評估 V1.0</div>
-                </div>
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h3 style="font-size:16px;">商品清單</h3>
+                <button id="btn-close-sidebar" class="btn-delete mobile-only" style="font-size:24px;">×</button>
             </div>
-        </section>
-
-        <!-- Market Potential: Price Arbitrage -->
-        <section id="market" class="py-20 bg-gray-50">
-            <div class="max-w-6xl mx-auto px-4">
-                <div class="mb-12 text-center">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">市場潛力：巨大的定價紅利</h2>
-                    <p class="text-gray-600 max-w-2xl mx-auto">
-                        匯率低迷與區域定價策略差異，使「日本購買」在台灣具有天然的價格吸引力。
-                    </p>
+            <div class="sidebar-content">
+                <div class="prefix-section">
+                    <label class="label-small">預設前綴 (例如: A, B-)</label>
+                    <input type="text" id="input-prefix" placeholder="不填則為純數字">
                 </div>
-
-                <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm">
-                        <div class="chart-container">
-                            <canvas id="mujiPriceChart"></canvas>
-                        </div>
-                        <p class="text-center text-xs text-gray-400 mt-4">註：以無印良品外套為例 (JPY 折合 TWD vs TW 官網售價)</p>
-                    </div>
-                    <div class="space-y-6">
-                        <div class="p-6 bg-white rounded-2xl border-l-4 border-red-700 shadow-sm">
-                            <h4 class="font-bold text-lg mb-2 text-gray-900">1. 套利空間顯著</h4>
-                            <p class="text-sm text-gray-600">即便計入平台費與賣家賞金，平均單件高價值商品（如無印良品、Uniqlo）仍有 NT$ 300 - 800 的價差。</p>
-                        </div>
-                        <div class="p-6 bg-white rounded-2xl border-l-4 border-red-700 shadow-sm">
-                            <h4 class="font-bold text-lg mb-2 text-gray-900">2. 供給端量體龐大</h4>
-                            <p class="text-sm text-gray-600">台灣每年赴日旅遊人次數百萬計。大多數旅人皆有「順手帶貨補貼旅費」的念頭，缺乏的是簡單的工具與信任機制。</p>
-                        </div>
-                        <div class="p-6 bg-white rounded-2xl border-l-4 border-red-700 shadow-sm">
-                            <h4 class="font-bold text-lg mb-2 text-gray-900">3. 隨緣代購需求</h4>
-                            <p class="text-sm text-gray-600">買家不排斥等待，他們在意的是「官方驗貨」與「信用卡支付」的安全性，而非極速到貨。</p>
-                        </div>
+                <div id="items-list">
+                    <!-- Item cards will be added here -->
+                    <div id="empty-state">
+                        <p style="font-size:14px;">尚未添加標記<br>點擊照片即可新增</p>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- The Guild Model Interaction -->
-        <section id="logic" class="py-20 bg-white">
-            <div class="max-w-6xl mx-auto px-4">
-                <div class="text-center mb-12">
-                    <h3 class="text-3xl font-bold mb-4">冒險者公會運作流程</h3>
-                    <p class="text-gray-600">我們將繁瑣的代購轉化為三個核心角色間的完美循環</p>
+            <div class="sidebar-footer hidden" id="footer-output">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="label-small">文字輸出</span>
+                    <button id="btn-copy" class="btn btn-primary" style="padding:4px 12px; font-size:11px; border-radius:12px;">複製清單</button>
                 </div>
-
-                <div class="grid md:grid-cols-3 gap-8">
-                    <!-- Role: Buyer -->
-                    <div class="guild-card bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
-                        <div class="text-5xl mb-6">📝</div>
-                        <h4 class="text-xl font-extrabold mb-3">買家 (委託人)</h4>
-                        <p class="text-sm text-gray-500 leading-relaxed mb-6">
-                            在列表選擇所需商品，或發布「許願單」。可針對急迫性額外增加「懸賞金 (Bonus)」。
-                        </p>
-                        <div class="mt-auto w-full py-3 bg-gray-50 rounded-xl text-xs font-bold text-gray-400 uppercase tracking-widest">發布需求</div>
-                    </div>
-
-                    <!-- Role: Platform -->
-                    <div class="guild-card bg-red-700 p-8 rounded-3xl shadow-xl flex flex-col items-center text-center text-white">
-                        <div class="text-5xl mb-6">🏰</div>
-                        <h4 class="text-xl font-extrabold mb-3 text-white">公會 (平台)</h4>
-                        <p class="text-sm text-red-100 leading-relaxed mb-6">
-                            負責金流擔保、據點驗貨、統一包裝寄送。確保賣家拿到錢，買家拿到對的貨。
-                        </p>
-                        <div class="mt-auto w-full py-3 bg-red-800 rounded-xl text-xs font-bold text-red-200 uppercase tracking-widest">核驗與保障</div>
-                    </div>
-
-                    <!-- Role: Seller -->
-                    <div class="guild-card bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
-                        <div class="text-5xl mb-6">🗡️</div>
-                        <h4 class="text-xl font-extrabold mb-3">賣家 (冒險者)</h4>
-                        <p class="text-sm text-gray-500 leading-relaxed mb-6">
-                            旅日時根據行程接單。回台後只需將貨物交給公會據點，後續物流完全不操心。
-                        </p>
-                        <div class="mt-auto w-full py-3 bg-gray-50 rounded-xl text-xs font-bold text-gray-400 uppercase tracking-widest">接取任務</div>
-                    </div>
-                </div>
+                <textarea id="output-text" readonly></textarea>
             </div>
-        </section>
-
-        <!-- Profit Simulation -->
-        <section id="profit" class="py-20 bg-[#fdfbf7] border-y border-gray-200">
-            <div class="max-w-5xl mx-auto px-4">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">財務試算：三方贏利模型</h2>
-                    <p class="text-gray-600">透過動態參數，試算每一筆交易所創造的價值分配。</p>
-                </div>
-
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200">
-                    <div class="grid md:grid-cols-2">
-                        <!-- Left: Inputs -->
-                        <div class="p-8 bg-gray-50 border-r border-gray-100">
-                            <h4 class="font-bold text-gray-800 mb-6 uppercase tracking-wider text-sm">設定交易參數</h4>
-                            <div class="space-y-6">
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 mb-2">日本購入價 (JPY)</label>
-                                    <input type="number" id="inputJpPrice" value="5990" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2">當前匯率</label>
-                                        <input type="number" id="inputRate" value="0.20" step="0.01" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 mb-2">台灣專櫃價</label>
-                                        <input type="number" id="inputTwPrice" value="1790" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 mb-2">買家加價賞金 (Bonus)</label>
-                                    <input type="range" id="inputBonus" min="0" max="500" value="150" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-700">
-                                    <div class="flex justify-between text-xs font-bold text-red-700 mt-2">
-                                        <span>最低 $0</span>
-                                        <span>當前：NT$ <span id="displayBonus">150</span></span>
-                                        <span>最高 $500</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right: Outputs -->
-                        <div class="p-8 flex flex-col justify-center space-y-6">
-                            <div class="bg-red-700 p-6 rounded-2xl text-white shadow-lg">
-                                <p class="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-1">平台收益 (公會)</p>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="text-3xl font-extrabold" id="outPlatformProfit">NT$ 152</span>
-                                    <span class="text-xs opacity-80">含服務費與 Bonus 抽成</span>
-                                </div>
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl border border-gray-200">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">賣家所得 (冒險者)</p>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="text-3xl font-extrabold text-gray-900" id="outSellerIncome">NT$ 150</span>
-                                    <span class="text-xs text-green-600 font-bold" id="outSellerMargin">11% 補貼</span>
-                                </div>
-                            </div>
-                            <div class="bg-white p-6 rounded-2xl border border-gray-200">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">買家節省 (委託人)</p>
-                                <div class="flex justify-between items-baseline">
-                                    <span class="text-3xl font-extrabold text-gray-900" id="outBuyerSavings">NT$ 170</span>
-                                    <span class="text-xs text-blue-600 font-bold" id="outBuyerPct">省 10%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Guarantee Mechanism: The Resale Strategy -->
-        <section id="guarantee" class="py-20 bg-white">
-            <div class="max-w-6xl mx-auto px-4">
-                <div class="grid md:grid-cols-2 gap-16 items-center">
-                    <div>
-                        <h2 class="text-3xl font-bold text-gray-900 mb-6">保障機制：棄單轉現貨策略</h2>
-                        <p class="text-gray-600 mb-8 leading-relaxed">
-                            傳統代購最怕買家反悔，我們將這項「風險」轉化為「獲利核心」。透過預收訂金與官方收購，確保賣家利益的同時，為平台創造更高毛利的庫存。
-                        </p>
-                        <div class="space-y-4">
-                            <div class="flex gap-4 items-start p-5 bg-gray-50 rounded-2xl">
-                                <div class="w-10 h-10 gradient-red rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">1</div>
-                                <div>
-                                    <h5 class="font-bold text-gray-900">強制訂金機制</h5>
-                                    <p class="text-sm text-gray-500">買家委託時須支付商品總價 30% - 50% 為訂金。若不履約，訂金全額沒收。</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4 items-start p-5 bg-gray-50 rounded-2xl">
-                                <div class="w-10 h-10 gradient-red rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">2</div>
-                                <div>
-                                    <h5 class="font-bold text-gray-900">官方強制收購</h5>
-                                    <p class="text-sm text-gray-500">若買家棄單，公會以「原價 + 部分補償」直接向賣家購回商品，賣家完全無損失。</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4 items-start p-5 bg-gray-50 rounded-2xl">
-                                <div class="w-10 h-10 gradient-red rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold">3</div>
-                                <div>
-                                    <h5 class="font-bold text-gray-900">庫存現貨專區</h5>
-                                    <p class="text-sm text-gray-500">被棄單的商品轉入「現貨專區」。由於已有沒收訂金墊底，現貨販售能創造比原服務費高出 3-5 倍的毛利。</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-900 p-10 rounded-[3rem] text-white shadow-2xl overflow-hidden relative">
-                        <div class="relative z-10">
-                            <h4 class="text-2xl font-bold mb-6">為什麼棄單反而是獲利機會？</h4>
-                            <div class="space-y-6">
-                                <div class="border-l-2 border-red-700 pl-6">
-                                    <p class="text-xs text-gray-400 uppercase mb-1">情境：正常成交</p>
-                                    <p class="text-lg font-bold">平台獲利：NT$ 150</p>
-                                    <p class="text-xs text-gray-500 mt-1">單筆服務費抽成</p>
-                                </div>
-                                <div class="border-l-2 border-green-500 pl-6">
-                                    <p class="text-xs text-gray-400 uppercase mb-1">情境：買家棄單並轉售</p>
-                                    <p class="text-lg font-bold text-green-400">平台預估獲利：NT$ 750+</p>
-                                    <p class="text-xs text-gray-500 mt-1">沒收訂金 ($450) + 現貨轉售溢價 ($300)</p>
-                                </div>
-                                <p class="text-sm text-gray-400 leading-relaxed pt-4 border-t border-white/10 italic">
-                                    「這將原本被動的代購平台，轉變為擁有實體現貨流動性的零售混和體。」
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- New Section: Profit Scenarios -->
-        <section id="profit-scenarios" class="py-20 bg-[#fdfbf7] border-y border-gray-200">
-            <div class="max-w-6xl mx-auto px-4">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl font-bold mb-4">平台獲利情境分析</h2>
-                    <p class="text-gray-500">預估初期、中期、長期在不同市場狀況下的財務表現</p>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200">
-                        <thead class="bg-gray-900 text-white text-xs uppercase tracking-widest">
-                            <tr>
-                                <th class="px-6 py-4">營運情境 / 階段</th>
-                                <th class="px-6 py-4">初期 (MVP 測試)</th>
-                                <th class="px-6 py-4">中期 (平台化營運)</th>
-                                <th class="px-6 py-4">長期 (生態系建立)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm divide-y divide-gray-100">
-                            <!-- Optimistic -->
-                            <tr class="hover:bg-green-50/50 transition-colors">
-                                <td class="px-6 py-6 font-bold text-green-700 bg-green-50/20">樂觀情境 (High Growth)</td>
-                                <td class="px-6 py-6">月獲利 NT$ 5萬+<br><span class="text-[10px] text-gray-400">高轉化率、高客單價</span></td>
-                                <td class="px-6 py-6">月獲利 NT$ 50萬+<br><span class="text-[10px] text-gray-400">社群效應爆發、品牌溢價</span></td>
-                                <td class="px-6 py-6 font-bold text-gray-900">月獲利 NT$ 200萬+<br><span class="text-[10px] text-gray-400">現貨商城成為主要營收</span></td>
-                            </tr>
-                            <!-- Conservative -->
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-6 font-bold text-gray-700 bg-gray-50/50">保守情境 (Steady)</td>
-                                <td class="px-6 py-6">月獲利 NT$ 2萬+<br><span class="text-[10px] text-gray-400">主要靠親友、小眾市場</span></td>
-                                <td class="px-6 py-6">月獲利 NT$ 20萬+<br><span class="text-[10px] text-gray-400">穩定廣告投入、固定用戶群</span></td>
-                                <td class="px-6 py-6">月獲利 NT$ 80萬+<br><span class="text-[10px] text-gray-400">維持代購市場領導地位</span></td>
-                            </tr>
-                            <!-- Pessimistic -->
-                            <tr class="hover:bg-red-50/50 transition-colors">
-                                <td class="px-6 py-6 font-bold text-red-700 bg-red-50/20">悲觀情境 (Low Conversion)</td>
-                                <td class="px-6 py-6">損益平衡點徘徊<br><span class="text-[10px] text-gray-400">信任門檻高、獲客成本高</span></td>
-                                <td class="px-6 py-6">月獲利 NT$ 5萬+<br><span class="text-[10px] text-gray-400">需大幅轉向利基市場</span></td>
-                                <td class="px-6 py-6">月獲利 NT$ 25萬+<br><span class="text-[10px] text-gray-400">面臨法律監管或同業競爭</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-8 grid md:grid-cols-3 gap-6">
-                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                        <h5 class="font-bold text-xs uppercase text-gray-400 mb-2">初期關鍵 (0-6M)</h5>
-                        <p class="text-xs text-gray-600">驗證無印良品、服飾類的高毛利路徑。損益平衡預計在每月 300 單。</p>
-                    </div>
-                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                        <h5 class="font-bold text-xs uppercase text-gray-400 mb-2">中期關鍵 (6-18M)</h5>
-                        <p class="text-xs text-gray-600">擴張據點效能，利用棄單轉現貨提高綜合毛利率至 20% 以上。</p>
-                    </div>
-                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                        <h5 class="font-bold text-xs uppercase text-gray-400 mb-2">長期關鍵 (18M+)</h5>
-                        <p class="text-xs text-gray-600">建立代購生態系，包含日本倉儲直發、會員等級獎勵制。</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SWOT & Strategy -->
-        <section id="advice" class="py-20 bg-[#fcfaf7]">
-            <div class="max-w-6xl mx-auto px-4">
-                <h3 class="text-3xl font-bold text-center mb-12">戰略分析與風險管理</h3>
-                
-                <div class="grid md:grid-cols-2 gap-8">
-                    <!-- SWOT: Strengths -->
-                    <div class="bg-white p-8 rounded-3xl shadow-sm">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-2 h-8 bg-green-500 rounded-full"></span>
-                            <h4 class="text-xl font-bold">核心優勢 (Strengths)</h4>
-                        </div>
-                        <ul class="space-y-3 text-gray-600 text-sm">
-                            <li class="flex gap-2"><span>✅</span> <strong>解決繁瑣度：</strong> 賣家無需回覆訊息、無需自行寄件。</li>
-                            <li class="flex gap-2"><span>✅</span> <strong>信任背書：</strong> 信用卡分期與平台驗貨，消彌C2C交易恐懼。</li>
-                            <li class="flex gap-2"><span>✅</span> <strong>動態定價：</strong> 加價 Bonus 模式自動篩選出真正稀缺的訂單。</li>
-                        </ul>
-                    </div>
-
-                    <!-- SWOT: Threats -->
-                    <div class="bg-white p-8 rounded-3xl shadow-sm">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-2 h-8 bg-red-500 rounded-full"></span>
-                            <h4 class="text-xl font-bold">潛在威脅 (Threats)</h4>
-                        </div>
-                        <ul class="space-y-3 text-gray-600 text-sm">
-                            <li class="flex gap-2"><span>⚠️</span> <strong>海關風險：</strong> 頻繁入境且攜帶大量同品項商品可能遭稅務稽查。</li>
-                            <li class="flex gap-2"><span>⚠️</span> <strong>藥事法規範：</strong> 日本熱門藥妝多受法規限制，需嚴格過濾品項。</li>
-                            <li class="flex gap-2"><span>⚠️</span> <strong>物流損耗：</strong> 無印良品玻璃或易碎品易在空運中受損，理賠機制需健全。</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="mt-12 bg-gray-900 text-white p-10 rounded-[2.5rem] relative overflow-hidden">
-                    <div class="relative z-10">
-                        <h4 class="text-2xl font-bold mb-6 flex items-center gap-2">
-                            <span>💡</span> 專家建議：下一階段行動
-                        </h4>
-                        <div class="grid md:grid-cols-3 gap-8">
-                            <div>
-                                <h5 class="font-bold text-red-500 mb-2">品項聚焦</h5>
-                                <p class="text-sm text-gray-400">初期專攻「無印良品服飾」或「熱門動漫限定周邊」。這類商品體積適中、單價透明、價差大且不易碎。</p>
-                            </div>
-                            <div>
-                                <h5 class="font-bold text-red-500 mb-2">據點戰略</h5>
-                                <p class="text-sm text-gray-400">利用現有北中南行號作為「公會傳送點」。賣家下機後直接將貨物集中，平台統一使用物流箱包裝，提升品牌質感。</p>
-                            </div>
-                            <div>
-                                <h5 class="font-bold text-red-500 mb-2">會員分級</h5>
-                                <p class="text-sm text-gray-400">建立冒險者聲望系統。信用良好的賣家可獲更低手續費，買家則更願意支付 Bonus 給高等級冒險者。</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Strategic Dashboard: Transcribing Image Content -->
-        <section id="strategic-dashboard" class="py-20 bg-white">
-            <div class="max-w-6xl mx-auto px-4">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl font-bold mb-4">戰略藍圖：冒險者公會核心規劃</h2>
-                    <p class="text-gray-500">參考戰略規劃圖內容所生成的數據化看板</p>
-                </div>
-
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    <!-- Quadrant 1: SWOT - Strengths -->
-                    <div class="p-8 bg-blue-50 rounded-[2.5rem] border border-blue-100">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold">S</span>
-                            <h4 class="font-bold text-blue-900">核心優勢</h4>
-                        </div>
-                        <ul class="text-xs text-blue-700 space-y-3 leading-relaxed">
-                            <li>● 獨家「公會中繼」信任模型</li>
-                            <li>● 實體據點驗貨，消除假貨疑慮</li>
-                            <li>● 訂金機制補償賣家，極低棄單率</li>
-                        </ul>
-                    </div>
-                    <!-- Quadrant 2: SWOT - Weaknesses -->
-                    <div class="p-8 bg-orange-50 rounded-[2.5rem] border border-orange-100">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-8 h-8 bg-orange-600 text-white rounded-lg flex items-center justify-center font-bold">W</span>
-                            <h4 class="font-bold text-orange-900">潛在弱點</h4>
-                        </div>
-                        <ul class="text-xs text-orange-700 space-y-3 leading-relaxed">
-                            <li>● 人力檢核成本隨規模線性增加</li>
-                            <li>● 初期買賣雙方匹配效率不足</li>
-                            <li>● 對日本特定品牌依賴度過高</li>
-                        </ul>
-                    </div>
-                    <!-- Quadrant 3: SWOT - Opportunities -->
-                    <div class="p-8 bg-green-50 rounded-[2.5rem] border border-green-100">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-8 h-8 bg-green-600 text-white rounded-lg flex items-center justify-center font-bold">O</span>
-                            <h4 class="font-bold text-green-900">市場機會</h4>
-                        </div>
-                        <ul class="text-xs text-green-700 space-y-3 leading-relaxed">
-                            <li>● 日本限定商品、聯名款需求激增</li>
-                            <li>● 匯率長期低迷，台日價差擴大</li>
-                            <li>● 發展「現貨市集」建立二次獲利</li>
-                        </ul>
-                    </div>
-                    <!-- Quadrant 4: SWOT - Threats -->
-                    <div class="p-8 bg-red-50 rounded-[2.5rem] border border-red-100">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="w-8 h-8 bg-red-600 text-white rounded-lg flex items-center justify-center font-bold">T</span>
-                            <h4 class="font-bold text-red-900">外部威脅</h4>
-                        </div>
-                        <ul class="text-xs text-red-700 space-y-3 leading-relaxed">
-                            <li>● 兩國海關政策與關稅調整風險</li>
-                            <li>● 日本品牌全球定價趨於一致化</li>
-                            <li>● 蝦皮、淘寶等大平台切入代購</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Strategic Pillars -->
-                <div class="grid md:grid-cols-2 gap-12">
-                    <div class="bg-gray-50 p-10 rounded-[3rem]">
-                        <h4 class="text-xl font-bold mb-6 flex items-center gap-3">
-                            <span class="text-red-700">🎯</span> 目標族群劃分 (Target Audience)
-                        </h4>
-                        <div class="space-y-6">
-                            <div class="flex justify-between items-center p-4 bg-white rounded-2xl">
-                                <div>
-                                    <div class="font-bold text-sm">小資服飾愛好者</div>
-                                    <div class="text-[10px] text-gray-400">追求台日 300-500 元價差，對品質要求高。</div>
-                                </div>
-                                <div class="text-red-700 font-bold">核心受眾</div>
-                            </div>
-                            <div class="flex justify-between items-center p-4 bg-white rounded-2xl">
-                                <div>
-                                    <div class="font-bold text-sm">動漫/精品收藏家</div>
-                                    <div class="text-[10px] text-gray-400">購買日本限定款，願意支付高額 Bonus。</div>
-                                </div>
-                                <div class="text-gray-400 font-bold italic">高利潤點</div>
-                            </div>
-                            <div class="flex justify-between items-center p-4 bg-white rounded-2xl">
-                                <div>
-                                    <div class="font-bold text-sm">頻繁旅日觀光客</div>
-                                    <div class="text-[10px] text-gray-400">想補貼旅費，但不希望處理物流糾紛。</div>
-                                </div>
-                                <div class="text-green-600 font-bold">供應主力</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col justify-center">
-                        <h4 class="text-2xl font-bold mb-6">核心成功要素 (Key Success Factors)</h4>
-                        <div class="space-y-4">
-                            <div class="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-start gap-4">
-                                <span class="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] mt-1 shrink-0">1</span>
-                                <div>
-                                    <div class="font-bold text-sm">自動化媒合引擎</div>
-                                    <p class="text-xs text-gray-500">透過 APP 串接 API，自動比對日本定價與行李空間。</p>
-                                </div>
-                            </div>
-                            <div class="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-start gap-4">
-                                <span class="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] mt-1 shrink-0">2</span>
-                                <div>
-                                    <div class="font-bold text-sm">強大的棄單轉售流量</div>
-                                    <p class="text-xs text-gray-500">建立現貨流量池，讓棄單變成「限量現貨」的營銷機會。</p>
-                                </div>
-                            </div>
-                            <div class="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-start gap-4">
-                                <span class="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] mt-1 shrink-0">3</span>
-                                <div>
-                                    <div class="font-bold text-sm">多點中轉物流體系</div>
-                                    <p class="text-xs text-gray-500">降低國內運費支出，縮短買賣雙方的實體交貨距離。</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        </div>
     </main>
 
-    <footer class="bg-white border-t border-gray-100 py-12">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-xs text-gray-400 uppercase tracking-widest font-bold">冒險者公會 代購平台商業報告 | &copy; 2026</p>
-        </div>
-    </footer>
+    <input type="file" id="file-input" class="hidden" accept="image/*">
+    <div id="toast">已複製到剪貼簿</div>
 
     <script>
-        // Simulation Logic
-        function updateSimulation() {
-            const jpPrice = parseFloat(document.getElementById('inputJpPrice').value) || 0;
-            const rate = parseFloat(document.getElementById('inputRate').value) || 0.20;
-            const twPrice = parseFloat(document.getElementById('inputTwPrice').value) || 0;
-            const bonus = parseInt(document.getElementById('inputBonus').value) || 0;
+        let items = [];
+        let nextId = 1;
+        let scale = 1;
+        let offset = { x: 0, y: 0 };
+        let isDragging = false;
+        let lastPos = { x: 0, y: 0 };
+        let selectedId = null;
+        let originalImage = null;
 
-            const costTwd = Math.round(jpPrice * rate);
+        const viewport = document.getElementById('viewport');
+        const container = document.getElementById('image-container');
+        const displayImg = document.getElementById('display-image');
+        const fileInput = document.getElementById('file-input');
+        const itemsList = document.getElementById('items-list');
+        const outputText = document.getElementById('output-text');
+        const prefixInput = document.getElementById('input-prefix');
+        const sidebar = document.getElementById('sidebar');
+
+        // --- Initialization ---
+        
+        document.getElementById('btn-upload').onclick = () => fileInput.click();
+        document.getElementById('upload-prompt').onclick = () => fileInput.click();
+        document.getElementById('btn-toggle-list').onclick = () => sidebar.classList.toggle('open');
+        document.getElementById('btn-close-sidebar').onclick = () => sidebar.classList.remove('open');
+        document.getElementById('btn-copy').onclick = copyList;
+        document.getElementById('btn-download').onclick = downloadResult;
+
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    originalImage = event.target.result;
+                    displayImg.src = originalImage;
+                    container.classList.remove('hidden');
+                    document.getElementById('upload-prompt').classList.add('hidden');
+                    document.getElementById('controls').classList.remove('hidden');
+                    document.getElementById('btn-download').classList.remove('hidden');
+                    resetZoom();
+                    items = [];
+                    nextId = 1;
+                    renderItems();
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // --- Zoom & Pan ---
+
+        function zoom(delta) {
+            scale = Math.min(Math.max(scale + delta, 1), 5);
+            if (scale === 1) offset = { x: 0, y: 0 };
+            updateTransform();
+        }
+
+        function resetZoom() {
+            scale = 1;
+            offset = { x: 0, y: 0 };
+            updateTransform();
+        }
+
+        function updateTransform() {
+            container.style.transform = `translate(${offset.x}px, ${offset.y}px) scale(${scale})`;
+        }
+
+        viewport.onpointerdown = (e) => {
+            if (!originalImage) return;
+            isDragging = true;
+            lastPos = { x: e.clientX, y: e.clientY };
+            viewport.setPointerCapture(e.pointerId);
+            viewport._startTime = Date.now();
+        };
+
+        viewport.onpointermove = (e) => {
+            if (!isDragging || scale <= 1) return;
+            const dx = e.clientX - lastPos.x;
+            const dy = e.clientY - lastPos.y;
+            offset.x += dx;
+            offset.y += dy;
+            lastPos = { x: e.clientX, y: e.clientY };
+            updateTransform();
+        };
+
+        viewport.onpointerup = (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            viewport.releasePointerCapture(e.pointerId);
+
+            const duration = Date.now() - viewport._startTime;
+            if (duration < 250) {
+                const rect = displayImg.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+                if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
+                    addMarker(x, y);
+                }
+            }
+        };
+
+        // --- Markers & Items ---
+
+        function addMarker(x, y) {
+            const prefix = prefixInput.value;
+            const label = prefix ? `${prefix}${nextId}` : nextId.toString();
+            const id = Date.now();
             
-            // Platform Logic
-            // Fee: 10% of item cost + 20% of bonus
-            const baseFee = costTwd * 0.10;
-            const bonusFee = bonus * 0.20;
-            const platformRevenue = Math.round(baseFee + bonusFee);
+            items.push({ id, label, price: '', x, y });
+            nextId++;
+            selectedId = id;
+            renderItems();
             
-            // Platform Expenses (Est: 2.75% Payment gateway + $30 logistics overhead)
-            const paymentFee = (costTwd + bonus + baseFee) * 0.0275;
-            const platformNetProfit = Math.round(platformRevenue - paymentFee - 30);
-
-            // Seller Income
-            const sellerNetProfit = bonus; 
-            const sellerMargin = costTwd > 0 ? Math.round((sellerNetProfit / costTwd) * 100) : 0;
-
-            // Buyer Savings
-            const finalPrice = costTwd + bonus + Math.round(baseFee);
-            const savings = twPrice - finalPrice;
-            const savingsPct = twPrice > 0 ? Math.round((savings / twPrice) * 100) : 0;
-
-            // Update UI
-            document.getElementById('displayBonus').innerText = bonus;
-            document.getElementById('outPlatformProfit').innerText = `NT$ ${platformNetProfit.toLocaleString()}`;
-            document.getElementById('outSellerIncome').innerText = `NT$ ${sellerNetProfit.toLocaleString()}`;
-            document.getElementById('outSellerMargin').innerText = `${sellerMargin}% 補貼`;
-            document.getElementById('outBuyerSavings').innerText = `NT$ ${savings.toLocaleString()}`;
-            document.getElementById('outBuyerPct').innerText = `省 ${savingsPct}%`;
-            
-            // Adjust Savings Color
-            const savingsEl = document.getElementById('outBuyerSavings');
-            if (savings < 0) {
-                savingsEl.classList.remove('text-gray-900');
-                savingsEl.classList.add('text-red-600');
-            } else {
-                savingsEl.classList.remove('text-red-600');
-                savingsEl.classList.add('text-gray-900');
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('open');
             }
         }
 
-        // Charts Initialization
-        window.onload = function() {
-            const ctx = document.getElementById('mujiPriceChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['日本購入 (¥5990)', '平台售價 (含費)', '台灣官網售價'],
-                    datasets: [{
-                        label: 'NTD 價格對比',
-                        data: [1198, 1438, 1790], // Adjusted based on 0.20 rate
-                        backgroundColor: [
-                            'rgba(209, 213, 219, 0.6)',
-                            'rgba(185, 28, 28, 0.8)',
-                            'rgba(31, 41, 55, 0.8)'
-                        ],
-                        borderRadius: 12,
-                        barThickness: 45
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { display: false } },
-                        x: { grid: { display: false } }
-                    }
-                }
+        function renderItems() {
+            // Update markers on image
+            const existingMarkers = container.querySelectorAll('.marker');
+            existingMarkers.forEach(m => m.remove());
+
+            items.forEach(item => {
+                const marker = document.createElement('div');
+                marker.className = `marker ${item.id === selectedId ? 'selected' : ''}`;
+                marker.style.left = `${item.x}%`;
+                marker.style.top = `${item.y}%`;
+                marker.innerText = item.label;
+                marker.onclick = (e) => {
+                    e.stopPropagation();
+                    selectedId = item.id;
+                    sidebar.classList.add('open');
+                    renderItems();
+                };
+                container.appendChild(marker);
             });
 
-            // Simulator listeners
-            ['inputJpPrice', 'inputRate', 'inputTwPrice', 'inputBonus'].forEach(id => {
-                document.getElementById(id).addEventListener('input', updateSimulation);
+            // Update sidebar list
+            itemsList.innerHTML = '';
+            if (items.length === 0) {
+                itemsList.innerHTML = '<div id="empty-state"><p style="font-size:14px;">尚未添加標記<br>點擊照片即可新增</p></div>';
+                document.getElementById('footer-output').classList.add('hidden');
+                document.getElementById('badge-count').classList.add('hidden');
+            } else {
+                document.getElementById('footer-output').classList.remove('hidden');
+                document.getElementById('badge-count').classList.remove('hidden');
+                document.getElementById('badge-count').innerText = items.length;
+
+                const sortedItems = [...items].sort((a, b) => {
+                    const numA = parseInt(a.label.replace(/\D/g, '')) || 0;
+                    const numB = parseInt(b.label.replace(/\D/g, '')) || 0;
+                    return numA - numB;
+                });
+
+                sortedItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = `item-card ${item.id === selectedId ? 'selected' : ''}`;
+                    card.onclick = () => {
+                        selectedId = item.id;
+                        renderItems();
+                    };
+
+                    card.innerHTML = `
+                        <div class="item-row">
+                            <div class="item-badge">${item.label}</div>
+                            <input type="text" value="${item.label}" class="label-edit" style="flex:1; border:none; background:transparent; font-weight:700; font-size:13px; padding:0;">
+                            <button class="btn-delete" onclick="deleteItem(event, ${item.id})">🗑️</button>
+                        </div>
+                        <div class="price-input-wrapper">
+                            <input type="text" value="${item.price}" placeholder="輸入價格" class="price-edit">
+                        </div>
+                    `;
+
+                    const labelInput = card.querySelector('.label-edit');
+                    labelInput.onchange = (e) => updateItem(item.id, { label: e.target.value });
+                    labelInput.onclick = (e) => e.stopPropagation();
+
+                    const priceInput = card.querySelector('.price-edit');
+                    priceInput.onchange = (e) => updateItem(item.id, { price: e.target.value });
+                    priceInput.onclick = (e) => e.stopPropagation();
+
+                    itemsList.appendChild(card);
+                });
+            }
+
+            updateOutput();
+        }
+
+        function updateItem(id, updates) {
+            const index = items.findIndex(i => i.id === id);
+            if (index !== -1) {
+                items[index] = { ...items[index], ...updates };
+                updateOutput();
+                // We don't re-render everything to avoid losing focus, 
+                // but we update markers if label changed
+                if (updates.label) {
+                    const markers = container.querySelectorAll('.marker');
+                    markers.forEach(m => {
+                        // This is a bit simplified, but works
+                        renderItems(); 
+                    });
+                }
+            }
+        }
+
+        function deleteItem(e, id) {
+            e.stopPropagation();
+            items = items.filter(i => i.id !== id);
+            if (selectedId === id) selectedId = null;
+            renderItems();
+        }
+
+        function updateOutput() {
+            const sortedItems = [...items].sort((a, b) => {
+                const numA = parseInt(a.label.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.label.replace(/\D/g, '')) || 0;
+                return numA - numB;
             });
-            updateSimulation();
+            outputText.value = sortedItems.map(i => `${i.label}: $${i.price || '0'}`).join('\n');
+        }
+
+        function copyList() {
+            outputText.select();
+            document.execCommand('copy');
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function downloadResult() {
+            if (!originalImage) return;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                items.forEach(item => {
+                    const px = (item.x / 100) * canvas.width;
+                    const py = (item.y / 100) * canvas.height;
+                    const radius = Math.max(canvas.width, canvas.height) * 0.015;
+
+                    ctx.beginPath();
+                    ctx.arc(px, py, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = radius * 0.1;
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'white';
+                    ctx.font = `bold ${radius * 1.2}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(item.label, px, py);
+                });
+
+                const link = document.createElement('a');
+                link.download = 'marked_products.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+            img.src = originalImage;
         }
     </script>
 </body>
