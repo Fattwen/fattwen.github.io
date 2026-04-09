@@ -384,6 +384,80 @@
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
 
     #file-input { display: none; }
+
+    /* ── Mobile (≤640px) ── */
+    @media (max-width: 640px) {
+      header { padding: 8px 12px; gap: 10px; }
+      header h1 { font-size: 13px; }
+      .hbtn { padding: 5px 8px; font-size: 11px; }
+      .progress-text { display: none; }
+
+      .main { flex-direction: column; position: relative; }
+
+      .map-area { flex: 1; min-height: 0; }
+
+      /* sidebar → bottom sheet */
+      .sidebar {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #252d3d;
+        border-radius: 16px 16px 0 0;
+        max-height: 55vh;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+        z-index: 50;
+        box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+      }
+
+      .sidebar.open { transform: translateY(0); }
+
+      .sidebar-scroll { padding: 14px 16px; }
+
+      /* drag handle */
+      .sidebar::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: #2e3a50;
+        border-radius: 2px;
+        margin: 10px auto 2px;
+        flex-shrink: 0;
+      }
+
+      /* smaller photo box on mobile */
+      .photo-box { aspect-ratio: 16/7; }
+
+      /* visited strip stays hidden on mobile (space-saving) */
+      .visited-strip { display: none; }
+
+      /* close button */
+      .mobile-close {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 16px 4px;
+      }
+
+      .mobile-close-btn {
+        background: none;
+        border: none;
+        color: #8892a4;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px 8px;
+      }
+
+      .zoom-controls { bottom: 12px; left: 12px; }
+      .zbtn { width: 28px; height: 28px; font-size: 14px; }
+
+      .pref-ja { font-size: 20px; }
+    }
+
+    /* hide mobile-close on desktop */
+    .mobile-close { display: none; }
   </style>
 </head>
 <body>
@@ -419,7 +493,10 @@
     </div>
   </div>
 
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
+    <div class="mobile-close">
+      <button class="mobile-close-btn" id="mobile-close-btn">✕</button>
+    </div>
     <div class="sidebar-scroll" id="sidebar-scroll">
       <div class="sidebar-empty">點擊地圖上的<br>都道府縣開始記錄 ✦</div>
     </div>
@@ -551,8 +628,15 @@ function selectPref(id) {
   selectedId = id;
   d3.selectAll('.prefecture').classed('active', false);
   d3.select(`[data-id="${id}"]`).classed('active', true);
+  document.getElementById('sidebar').classList.add('open');
   renderSidebar(id);
 }
+
+document.getElementById('mobile-close-btn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+  d3.selectAll('.prefecture').classed('active', false);
+  selectedId = null;
+});
 
 function renderSidebar(id) {
   const d = db[id] || {};
