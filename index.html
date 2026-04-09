@@ -6,6 +6,7 @@
   <title>日本47都道府縣挑戰</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -508,7 +509,7 @@
 </div>
 
 <div class="tooltip" id="tooltip"></div>
-<input type="file" id="file-input" accept="image/*">
+<input type="file" id="file-input" accept="image/*,.heic,.heif,image/heic,image/heif">
 
 <script>
 const STORAGE_KEY = 'japan_challenge_v2';
@@ -718,10 +719,29 @@ function renderSidebar(id) {
 }
 
 // ── File upload ──────────────────────────────────────────────
-document.getElementById('file-input').addEventListener('change', function () {
+document.getElementById('file-input').addEventListener('change', async function () {
   const file = this.files[0];
   if (!file || !pendingUploadId) return;
   const id = pendingUploadId;
+  this.value = '';
+
+  let processedFile = file;
+
+  // Convert HEIC/HEIF to JPEG
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif'
+    || /\.(heic|heif)$/i.test(file.name);
+
+  if (isHeic) {
+    try {
+      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+      processedFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+    } catch (err) {
+      alert('HEIC 轉換失敗，請先在 iPhone 設定改為「最相容」格式輸出 JPG。');
+      pendingUploadId = null;
+      return;
+    }
+  }
+
   const reader = new FileReader();
   reader.onload = e => {
     if (!db[id]) db[id] = {};
@@ -733,8 +753,7 @@ document.getElementById('file-input').addEventListener('change', function () {
     if (selectedId === id) renderSidebar(id);
     pendingUploadId = null;
   };
-  reader.readAsDataURL(file);
-  this.value = '';
+  reader.readAsDataURL(processedFile);
 });
 
 // ── Tooltip ──────────────────────────────────────────────────
