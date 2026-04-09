@@ -1,726 +1,805 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>商品編號標記工具 - 單頁版</title>
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f4f4f5;
-            --card: #ffffff;
-            --text: #18181b;
-            --text-muted: #71717a;
-            --border: #e4e4e7;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日本47都道府縣挑戰</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    /* ── Header ── */
+    header {
+      padding: 12px 20px;
+      background: #161b27;
+      border-bottom: 1px solid #252d3d;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
 
-        /* Header */
-        header {
-            height: 56px;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            items-center: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            z-index: 100;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-        }
+    header h1 { font-size: 16px; font-weight: 700; white-space: nowrap; }
 
-        .logo {
-            font-weight: 700;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .progress-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .logo-icon {
-            width: 28px;
-            height: 28px;
-            background: var(--primary);
-            color: white;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
+    .progress-bar {
+      flex: 1;
+      background: #252d3d;
+      border-radius: 99px;
+      height: 7px;
+      overflow: hidden;
+    }
 
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4f8ef7, #a78bfa);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
 
-        .btn {
-            border: none;
-            border-radius: 20px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
+    .progress-text { font-size: 12px; color: #8892a4; white-space: nowrap; }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
+    .header-btns { display: flex; gap: 8px; }
 
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #475569;
-        }
+    .hbtn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #2e3a50;
+      background: transparent;
+      color: #c8d0e0;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
 
-        .btn-icon {
-            padding: 8px;
-            border-radius: 50%;
-        }
+    .hbtn:hover { background: #1e2535; color: #fff; }
+    .hbtn.primary { background: #4f8ef7; border-color: #4f8ef7; color: #fff; }
+    .hbtn.primary:hover { background: #3d7de6; }
 
-        /* Main Layout */
-        main {
-            flex: 1;
-            display: flex;
-            position: relative;
-            overflow: hidden;
-        }
+    /* ── Layout ── */
+    .main { display: flex; flex: 1; overflow: hidden; }
 
-        /* Viewport */
-        #viewport {
-            flex: 1;
-            background: #e2e8f0;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            touch-action: none;
-        }
+    /* ── Map ── */
+    .map-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #0d111a;
+    }
 
-        #image-container {
-            position: relative;
-            display: inline-block;
-            transform-origin: center;
-            transition: transform 0.1s ease-out;
-            cursor: crosshair;
-        }
+    #map-svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
 
-        #display-image {
-            max-height: 85vh;
-            max-width: 90vw;
-            display: block;
-            pointer-events: none;
-            user-select: none;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
+    #map-svg:active { cursor: grabbing; }
 
-        .marker {
-            position: absolute;
-            width: 32px;
-            height: 32px;
-            background: rgba(0,0,0,0.75);
-            color: white;
-            border: 2px solid white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 800;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            z-index: 10;
-            cursor: pointer;
-        }
+    .prefecture {
+      stroke: #1e2535;
+      stroke-width: 0.6;
+      cursor: pointer;
+      transition: stroke 0.15s, stroke-width 0.15s;
+    }
 
-        .marker.selected {
-            background: var(--primary);
-            transform: translate(-50%, -50%) scale(1.2);
-            z-index: 20;
-        }
+    .prefecture.unvisited { fill: #2a3248; }
+    .prefecture.visited { fill: #2d5a3d; }
+    .prefecture.active { stroke: #ffffff; stroke-width: 2; }
+    .prefecture:hover { stroke: #a0aec0; stroke-width: 1.2; }
 
-        /* Sidebar */
-        #sidebar {
-            width: 320px;
-            background: var(--card);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            z-index: 150;
-            transform: translateX(100%);
-        }
+    /* ── Zoom controls ── */
+    .zoom-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-        #sidebar.open {
-            transform: translateX(0);
-        }
+    .zbtn {
+      width: 32px;
+      height: 32px;
+      background: #161b27;
+      border: 1px solid #252d3d;
+      border-radius: 6px;
+      color: #c8d0e0;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
 
-        @media (min-width: 768px) {
-            #sidebar {
-                position: relative;
-                transform: translateX(0);
-            }
-            .mobile-only { display: none; }
-        }
+    .zbtn:hover { background: #1e2535; color: #fff; }
 
-        .sidebar-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* ── Loading ── */
+    .loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      color: #8892a4;
+      font-size: 14px;
+      background: #0d111a;
+      z-index: 10;
+    }
 
-        .sidebar-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-        }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #252d3d;
+      border-top-color: #4f8ef7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
 
-        .prefix-section {
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
-        }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        .input-group {
-            margin-bottom: 12px;
-        }
+    /* ── Tooltip ── */
+    .tooltip {
+      position: fixed;
+      background: #1e2535dd;
+      border: 1px solid #2e3a50;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+      z-index: 200;
+      backdrop-filter: blur(4px);
+    }
 
-        .label-small {
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
-            display: block;
-        }
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 270px;
+      background: #161b27;
+      border-left: 1px solid #252d3d;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
 
-        input[type="text"]:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
-        }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #252d3d; border-radius: 2px; }
 
-        .item-card {
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 12px;
-            transition: all 0.2s;
-        }
+    .sidebar-empty {
+      color: #3a4560;
+      font-size: 13px;
+      text-align: center;
+      margin-top: 80px;
+      line-height: 2;
+    }
 
-        .item-card.selected {
-            border-color: var(--primary);
-            background: #f5f3ff;
-            box-shadow: 0 0 0 1px var(--primary);
-        }
+    .pref-header { margin-bottom: 16px; }
+    .pref-ja { font-size: 24px; font-weight: 700; }
+    .pref-en { font-size: 12px; color: #8892a4; margin-top: 2px; }
 
-        .item-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
+    .visited-tag {
+      display: inline-block;
+      background: #1a3d28;
+      color: #4ade80;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-bottom: 12px;
+    }
 
-        .item-badge {
-            width: 28px;
-            height: 28px;
-            background: var(--text);
-            color: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
+    /* Photo box */
+    .photo-box {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #1a1f2e;
+      border: 2px dashed #2a3450;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.2s;
+    }
 
-        .btn-delete {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 4px;
-        }
+    .photo-box:hover { border-color: #4f8ef7; }
 
-        .btn-delete:hover { color: #ef4444; }
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
 
-        .price-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
+    .photo-box.has-photo { border-style: solid; border-color: #2a3450; }
+    .photo-box.has-photo img { display: block; }
+    .photo-box.has-photo .upload-hint { display: none; }
 
-        .price-input-wrapper::before {
-            content: '$';
-            position: absolute;
-            left: 12px;
-            color: #94a3b8;
-            font-size: 14px;
-        }
+    .upload-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #3a4560;
+      font-size: 13px;
+      pointer-events: none;
+    }
 
-        .price-input-wrapper input {
-            padding-left: 24px;
-        }
+    .upload-icon { font-size: 30px; }
 
-        /* Footer Output */
-        .sidebar-footer {
-            padding: 16px;
-            background: #f8fafc;
-            border-top: 1px solid var(--border);
-        }
+    .photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
 
-        #output-text {
-            width: 100%;
-            height: 80px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px;
-            font-family: monospace;
-            font-size: 11px;
-            resize: none;
-            margin-top: 8px;
-        }
+    .photo-box.has-photo:hover .photo-overlay { display: flex; }
 
-        /* Controls */
-        .zoom-controls {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 50;
-        }
+    .obtn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
 
-        .control-btn {
-            width: 44px;
-            height: 44px;
-            background: white;
-            border: none;
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: #475569;
-            cursor: pointer;
-        }
+    .obtn:hover { background: rgba(255,255,255,0.25); }
 
-        .control-btn:active { background: #f1f5f9; transform: scale(0.95); }
+    .field-label {
+      font-size: 11px;
+      color: #8892a4;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin: 16px 0 6px;
+    }
 
-        /* Empty State */
-        #empty-state {
-            text-align: center;
-            padding: 40px;
-        }
+    .memo-input {
+      width: 100%;
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 6px;
+      color: #e8eaf0;
+      font-size: 13px;
+      padding: 8px 10px;
+      resize: none;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.5;
+    }
 
-        #empty-state p { color: var(--text-muted); margin-top: 12px; }
+    .memo-input:focus { border-color: #4f8ef7; }
 
-        .hidden { display: none !important; }
+    .save-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 9px;
+      background: linear-gradient(135deg, #4f8ef7, #a78bfa);
+      border: none;
+      border-radius: 7px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
 
-        /* Toast */
-        #toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 13px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
+    .save-btn:hover { opacity: 0.85; }
 
-        #toast.show { opacity: 1; }
-    </style>
+    .delete-btn {
+      margin-top: 6px;
+      width: 100%;
+      padding: 7px;
+      background: transparent;
+      border: 1px solid #3a2535;
+      border-radius: 7px;
+      color: #f87171;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .delete-btn:hover { background: #2a1520; }
+
+    /* visited strip */
+    .visited-strip {
+      border-top: 1px solid #1e2535;
+      padding: 14px 20px;
+      flex-shrink: 0;
+    }
+
+    .visited-strip-label {
+      font-size: 11px;
+      color: #8892a4;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .thumb-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+
+    .thumb-grid::-webkit-scrollbar { width: 3px; }
+    .thumb-grid::-webkit-scrollbar-thumb { background: #252d3d; border-radius: 2px; }
+
+    .thumb {
+      width: 34px;
+      height: 34px;
+      border-radius: 5px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid #1e2535;
+      flex-shrink: 0;
+      background: #1a2030;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: #4a5568;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    #file-input { display: none; }
+  </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">
-            <div class="logo-icon">+</div>
-            <span>Marker</span>
-        </div>
-        <div class="actions">
-            <button id="btn-upload" class="btn btn-secondary">
-                <span>📁</span> <span class="sm-hide">上傳</span>
-            </button>
-            <button id="btn-toggle-list" class="btn btn-secondary relative">
-                <span>📋</span>
-                <span id="badge-count" class="hidden" style="position:absolute; top:-5px; right:-5px; background:var(--primary); color:white; font-size:9px; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center;">0</span>
-            </button>
-            <button id="btn-download" class="btn btn-primary hidden">
-                <span>💾</span> <span class="sm-hide">下載圖片</span>
-            </button>
-        </div>
-    </header>
+<header>
+  <h1>🗾 日本47都道府縣</h1>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">0 / 47</div>
+  </div>
+  <div class="header-btns">
+    <button class="hbtn" id="export-svg-btn">輸出 SVG</button>
+    <button class="hbtn primary" id="export-png-btn">輸出 PNG</button>
+  </div>
+</header>
 
-    <main>
-        <div id="viewport">
-            <div id="upload-prompt" style="text-align:center; cursor:pointer;">
-                <div style="font-size:48px; color:#cbd5e1; margin-bottom:16px;">🖼️</div>
-                <p style="font-weight:600; color:#64748b;">點擊上傳商品照片</p>
-                <p style="font-size:12px; color:#94a3b8; margin-top:4px;">支援 JPG, PNG</p>
-            </div>
-            <div id="image-container" class="hidden">
-                <img id="display-image" src="" alt="">
-                <!-- Markers will be added here -->
-            </div>
+<div class="main">
+  <div class="map-area">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span>載入地圖中...</span>
+    </div>
 
-            <div class="zoom-controls hidden" id="controls">
-                <button class="control-btn" onclick="zoom(0.2)">+</button>
-                <button class="control-btn" onclick="zoom(-0.2)">-</button>
-                <button class="control-btn" onclick="resetZoom()" style="font-size:10px;">1:1</button>
-            </div>
-        </div>
+    <svg id="map-svg">
+      <defs id="svg-defs"></defs>
+      <g id="map-g"></g>
+    </svg>
 
-        <div id="sidebar">
-            <div class="sidebar-header">
-                <h3 style="font-size:16px;">商品清單</h3>
-                <button id="btn-close-sidebar" class="btn-delete mobile-only" style="font-size:24px;">×</button>
-            </div>
-            <div class="sidebar-content">
-                <div class="prefix-section">
-                    <label class="label-small">預設前綴 (例如: A, B-)</label>
-                    <input type="text" id="input-prefix" placeholder="不填則為純數字">
-                </div>
-                <div id="items-list">
-                    <!-- Item cards will be added here -->
-                    <div id="empty-state">
-                        <p style="font-size:14px;">尚未添加標記<br>點擊照片即可新增</p>
-                    </div>
-                </div>
-            </div>
-            <div class="sidebar-footer hidden" id="footer-output">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="label-small">文字輸出</span>
-                    <button id="btn-copy" class="btn btn-primary" style="padding:4px 12px; font-size:11px; border-radius:12px;">複製清單</button>
-                </div>
-                <textarea id="output-text" readonly></textarea>
-            </div>
-        </div>
-    </main>
+    <div class="zoom-controls">
+      <button class="zbtn" id="zoom-in-btn" title="放大">＋</button>
+      <button class="zbtn" id="zoom-reset-btn" title="重設">⊡</button>
+      <button class="zbtn" id="zoom-out-btn" title="縮小">－</button>
+    </div>
+  </div>
 
-    <input type="file" id="file-input" class="hidden" accept="image/*">
-    <div id="toast">已複製到剪貼簿</div>
+  <div class="sidebar">
+    <div class="sidebar-scroll" id="sidebar-scroll">
+      <div class="sidebar-empty">點擊地圖上的<br>都道府縣開始記錄 ✦</div>
+    </div>
+    <div class="visited-strip">
+      <div class="visited-strip-label">已造訪</div>
+      <div class="thumb-grid" id="thumb-grid"></div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        let items = [];
-        let nextId = 1;
-        let scale = 1;
-        let offset = { x: 0, y: 0 };
-        let isDragging = false;
-        let lastPos = { x: 0, y: 0 };
-        let selectedId = null;
-        let originalImage = null;
+<div class="tooltip" id="tooltip"></div>
+<input type="file" id="file-input" accept="image/*">
 
-        const viewport = document.getElementById('viewport');
-        const container = document.getElementById('image-container');
-        const displayImg = document.getElementById('display-image');
-        const fileInput = document.getElementById('file-input');
-        const itemsList = document.getElementById('items-list');
-        const outputText = document.getElementById('output-text');
-        const prefixInput = document.getElementById('input-prefix');
-        const sidebar = document.getElementById('sidebar');
+<script>
+const STORAGE_KEY = 'japan_challenge_v2';
+const TOPOJSON_URL = 'https://raw.githubusercontent.com/dataofjapan/land/master/japan.topojson';
 
-        // --- Initialization ---
-        
-        document.getElementById('btn-upload').onclick = () => fileInput.click();
-        document.getElementById('upload-prompt').onclick = () => fileInput.click();
-        document.getElementById('btn-toggle-list').onclick = () => sidebar.classList.toggle('open');
-        document.getElementById('btn-close-sidebar').onclick = () => sidebar.classList.remove('open');
-        document.getElementById('btn-copy').onclick = copyList;
-        document.getElementById('btn-download').onclick = downloadResult;
+const PREF_JA = {
+  1:'北海道',2:'青森県',3:'岩手県',4:'宮城県',5:'秋田県',
+  6:'山形県',7:'福島県',8:'茨城県',9:'栃木県',10:'群馬県',
+  11:'埼玉県',12:'千葉県',13:'東京都',14:'神奈川県',15:'新潟県',
+  16:'富山県',17:'石川県',18:'福井県',19:'山梨県',20:'長野県',
+  21:'岐阜県',22:'静岡県',23:'愛知県',24:'三重県',25:'滋賀県',
+  26:'京都府',27:'大阪府',28:'兵庫県',29:'奈良県',30:'和歌山県',
+  31:'鳥取県',32:'島根県',33:'岡山県',34:'広島県',35:'山口県',
+  36:'徳島県',37:'香川県',38:'愛媛県',39:'高知県',40:'福岡県',
+  41:'佐賀県',42:'長崎県',43:'熊本県',44:'大分県',45:'宮崎県',
+  46:'鹿児島県',47:'沖縄県'
+};
 
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    originalImage = event.target.result;
-                    displayImg.src = originalImage;
-                    container.classList.remove('hidden');
-                    document.getElementById('upload-prompt').classList.add('hidden');
-                    document.getElementById('controls').classList.remove('hidden');
-                    document.getElementById('btn-download').classList.remove('hidden');
-                    resetZoom();
-                    items = [];
-                    nextId = 1;
-                    renderItems();
-                };
-                reader.readAsDataURL(file);
-            }
-        };
+let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let selectedId = null;
+let pendingUploadId = null;
+let zoomBehavior = null;
+let currentTransform = d3.zoomIdentity;
 
-        // --- Zoom & Pan ---
+function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
 
-        function zoom(delta) {
-            scale = Math.min(Math.max(scale + delta, 1), 5);
-            if (scale === 1) offset = { x: 0, y: 0 };
-            updateTransform();
-        }
+function visitedCount() {
+  return Object.keys(db).filter(k => db[k] && (db[k].photo || db[k].memo)).length;
+}
 
-        function resetZoom() {
-            scale = 1;
-            offset = { x: 0, y: 0 };
-            updateTransform();
-        }
+function updateProgress() {
+  const n = visitedCount();
+  document.getElementById('progress-text').textContent = `${n} / 47`;
+  document.getElementById('progress-fill').style.width = `${(n/47)*100}%`;
+}
 
-        function updateTransform() {
-            container.style.transform = `translate(${offset.x}px, ${offset.y}px) scale(${scale})`;
-        }
+function updateThumbs() {
+  const grid = document.getElementById('thumb-grid');
+  grid.innerHTML = '';
+  Object.entries(db).forEach(([id, d]) => {
+    if (!d || (!d.photo && !d.memo)) return;
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    div.title = PREF_JA[id] || id;
+    if (d.photo) {
+      const img = document.createElement('img');
+      img.src = d.photo;
+      div.appendChild(img);
+    } else {
+      div.textContent = (PREF_JA[id] || '').replace(/[都道府県]/g,'');
+    }
+    div.addEventListener('click', () => selectPref(String(id)));
+    grid.appendChild(div);
+  });
+}
 
-        viewport.onpointerdown = (e) => {
-            if (!originalImage) return;
-            isDragging = true;
-            lastPos = { x: e.clientX, y: e.clientY };
-            viewport.setPointerCapture(e.pointerId);
-            viewport._startTime = Date.now();
-        };
+// ── SVG pattern for photo fill ──────────────────────────────
+function applyPhotoPattern(id, photoUrl) {
+  const defs = document.getElementById('svg-defs');
 
-        viewport.onpointermove = (e) => {
-            if (!isDragging || scale <= 1) return;
-            const dx = e.clientX - lastPos.x;
-            const dy = e.clientY - lastPos.y;
-            offset.x += dx;
-            offset.y += dy;
-            lastPos = { x: e.clientX, y: e.clientY };
-            updateTransform();
-        };
+  // Remove old pattern
+  const old = document.getElementById(`pat-${id}`);
+  if (old) old.remove();
 
-        viewport.onpointerup = (e) => {
-            if (!isDragging) return;
-            isDragging = false;
-            viewport.releasePointerCapture(e.pointerId);
+  if (!photoUrl) {
+    // Reset to color fill
+    const path = document.querySelector(`[data-id="${id}"]`);
+    if (path) {
+      path.style.fill = '';
+      const d = db[id];
+      path.classList.toggle('visited', !!(d && d.memo));
+      path.classList.toggle('unvisited', !(d && d.memo));
+    }
+    return;
+  }
 
-            const duration = Date.now() - viewport._startTime;
-            if (duration < 250) {
-                const rect = displayImg.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
+  const path = document.querySelector(`[data-id="${id}"]`);
+  if (!path) return;
 
-                if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-                    addMarker(x, y);
-                }
-            }
-        };
+  const bbox = path.getBBox();
 
-        // --- Markers & Items ---
+  const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+  pattern.setAttribute('id', `pat-${id}`);
+  pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+  pattern.setAttribute('x', bbox.x);
+  pattern.setAttribute('y', bbox.y);
+  pattern.setAttribute('width', bbox.width);
+  pattern.setAttribute('height', bbox.height);
 
-        function addMarker(x, y) {
-            const prefix = prefixInput.value;
-            const label = prefix ? `${prefix}${nextId}` : nextId.toString();
-            const id = Date.now();
-            
-            items.push({ id, label, price: '', x, y });
-            nextId++;
-            selectedId = id;
-            renderItems();
-            
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('open');
-            }
-        }
+  const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+  img.setAttribute('href', photoUrl);
+  img.setAttribute('x', 0);
+  img.setAttribute('y', 0);
+  img.setAttribute('width', bbox.width);
+  img.setAttribute('height', bbox.height);
+  img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 
-        function renderItems() {
-            // Update markers on image
-            const existingMarkers = container.querySelectorAll('.marker');
-            existingMarkers.forEach(m => m.remove());
+  pattern.appendChild(img);
+  defs.appendChild(pattern);
 
-            items.forEach(item => {
-                const marker = document.createElement('div');
-                marker.className = `marker ${item.id === selectedId ? 'selected' : ''}`;
-                marker.style.left = `${item.x}%`;
-                marker.style.top = `${item.y}%`;
-                marker.innerText = item.label;
-                marker.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedId = item.id;
-                    sidebar.classList.add('open');
-                    renderItems();
-                };
-                container.appendChild(marker);
-            });
+  path.style.fill = `url(#pat-${id})`;
+  path.classList.remove('visited', 'unvisited');
+}
 
-            // Update sidebar list
-            itemsList.innerHTML = '';
-            if (items.length === 0) {
-                itemsList.innerHTML = '<div id="empty-state"><p style="font-size:14px;">尚未添加標記<br>點擊照片即可新增</p></div>';
-                document.getElementById('footer-output').classList.add('hidden');
-                document.getElementById('badge-count').classList.add('hidden');
-            } else {
-                document.getElementById('footer-output').classList.remove('hidden');
-                document.getElementById('badge-count').classList.remove('hidden');
-                document.getElementById('badge-count').innerText = items.length;
+function restoreAllPhotos() {
+  Object.entries(db).forEach(([id, d]) => {
+    if (d && d.photo) applyPhotoPattern(id, d.photo);
+    else if (d && d.memo) {
+      const path = document.querySelector(`[data-id="${id}"]`);
+      if (path) { path.classList.add('visited'); path.classList.remove('unvisited'); }
+    }
+  });
+}
 
-                const sortedItems = [...items].sort((a, b) => {
-                    const numA = parseInt(a.label.replace(/\D/g, '')) || 0;
-                    const numB = parseInt(b.label.replace(/\D/g, '')) || 0;
-                    return numA - numB;
-                });
+// ── Sidebar ─────────────────────────────────────────────────
+function selectPref(id) {
+  selectedId = id;
+  d3.selectAll('.prefecture').classed('active', false);
+  d3.select(`[data-id="${id}"]`).classed('active', true);
+  renderSidebar(id);
+}
 
-                sortedItems.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = `item-card ${item.id === selectedId ? 'selected' : ''}`;
-                    card.onclick = () => {
-                        selectedId = item.id;
-                        renderItems();
-                    };
+function renderSidebar(id) {
+  const d = db[id] || {};
+  const ja = PREF_JA[id] || '';
+  const en = d.nam || '';
+  const hasPhoto = !!d.photo;
+  const visited = hasPhoto || !!d.memo;
 
-                    card.innerHTML = `
-                        <div class="item-row">
-                            <div class="item-badge">${item.label}</div>
-                            <input type="text" value="${item.label}" class="label-edit" style="flex:1; border:none; background:transparent; font-weight:700; font-size:13px; padding:0;">
-                            <button class="btn-delete" onclick="deleteItem(event, ${item.id})">🗑️</button>
-                        </div>
-                        <div class="price-input-wrapper">
-                            <input type="text" value="${item.price}" placeholder="輸入價格" class="price-edit">
-                        </div>
-                    `;
+  const wrap = document.getElementById('sidebar-scroll');
+  wrap.innerHTML = `
+    ${visited ? '<span class="visited-tag">✓ 已造訪</span>' : ''}
+    <div class="pref-header">
+      <div class="pref-ja">${ja}</div>
+      ${en ? `<div class="pref-en">${en}</div>` : ''}
+    </div>
+    <div class="photo-box ${hasPhoto ? 'has-photo' : ''}" id="photo-box">
+      <img src="${d.photo || ''}" id="photo-img" alt="">
+      <div class="upload-hint">
+        <div class="upload-icon">📷</div>
+        <span>點擊上傳代表照片</span>
+      </div>
+      <div class="photo-overlay">
+        <button class="obtn" id="change-btn">更換</button>
+        <button class="obtn" id="rm-photo-btn">刪除</button>
+      </div>
+    </div>
+    <div class="field-label">備忘 / 旅遊心得</div>
+    <textarea class="memo-input" id="memo-input" rows="4" placeholder="記錄一下這裡的回憶...">${d.memo || ''}</textarea>
+    <button class="save-btn" id="save-btn">儲存</button>
+    ${visited ? '<button class="delete-btn" id="del-all-btn">清除這個縣的資料</button>' : ''}
+  `;
 
-                    const labelInput = card.querySelector('.label-edit');
-                    labelInput.onchange = (e) => updateItem(item.id, { label: e.target.value });
-                    labelInput.onclick = (e) => e.stopPropagation();
+  document.getElementById('photo-box').addEventListener('click', e => {
+    if (e.target.id === 'change-btn' || e.target.id === 'rm-photo-btn') return;
+    pendingUploadId = id;
+    document.getElementById('file-input').click();
+  });
 
-                    const priceInput = card.querySelector('.price-edit');
-                    priceInput.onchange = (e) => updateItem(item.id, { price: e.target.value });
-                    priceInput.onclick = (e) => e.stopPropagation();
+  document.getElementById('change-btn')?.addEventListener('click', () => {
+    pendingUploadId = id;
+    document.getElementById('file-input').click();
+  });
 
-                    itemsList.appendChild(card);
-                });
-            }
+  document.getElementById('rm-photo-btn')?.addEventListener('click', () => {
+    if (!db[id]) db[id] = {};
+    delete db[id].photo;
+    saveDB();
+    applyPhotoPattern(id, null);
+    updateProgress();
+    updateThumbs();
+    renderSidebar(id);
+  });
 
-            updateOutput();
-        }
+  document.getElementById('save-btn').addEventListener('click', () => {
+    if (!db[id]) db[id] = {};
+    db[id].memo = document.getElementById('memo-input').value.trim();
+    saveDB();
+    const path = document.querySelector(`[data-id="${id}"]`);
+    if (path && !db[id].photo) {
+      path.classList.toggle('visited', !!db[id].memo);
+      path.classList.toggle('unvisited', !db[id].memo);
+    }
+    updateProgress();
+    updateThumbs();
+    renderSidebar(id);
+  });
 
-        function updateItem(id, updates) {
-            const index = items.findIndex(i => i.id === id);
-            if (index !== -1) {
-                items[index] = { ...items[index], ...updates };
-                updateOutput();
-                // We don't re-render everything to avoid losing focus, 
-                // but we update markers if label changed
-                if (updates.label) {
-                    const markers = container.querySelectorAll('.marker');
-                    markers.forEach(m => {
-                        // This is a bit simplified, but works
-                        renderItems(); 
-                    });
-                }
-            }
-        }
+  document.getElementById('del-all-btn')?.addEventListener('click', () => {
+    delete db[id];
+    saveDB();
+    applyPhotoPattern(id, null);
+    const path = document.querySelector(`[data-id="${id}"]`);
+    if (path) { path.classList.add('unvisited'); path.classList.remove('visited', 'active'); path.style.fill = ''; }
+    selectedId = null;
+    updateProgress();
+    updateThumbs();
+    wrap.innerHTML = '<div class="sidebar-empty">點擊地圖上的<br>都道府縣開始記錄 ✦</div>';
+  });
+}
 
-        function deleteItem(e, id) {
-            e.stopPropagation();
-            items = items.filter(i => i.id !== id);
-            if (selectedId === id) selectedId = null;
-            renderItems();
-        }
+// ── File upload ──────────────────────────────────────────────
+document.getElementById('file-input').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file || !pendingUploadId) return;
+  const id = pendingUploadId;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (!db[id]) db[id] = {};
+    db[id].photo = e.target.result;
+    saveDB();
+    applyPhotoPattern(id, db[id].photo);
+    updateProgress();
+    updateThumbs();
+    if (selectedId === id) renderSidebar(id);
+    pendingUploadId = null;
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
 
-        function updateOutput() {
-            const sortedItems = [...items].sort((a, b) => {
-                const numA = parseInt(a.label.replace(/\D/g, '')) || 0;
-                const numB = parseInt(b.label.replace(/\D/g, '')) || 0;
-                return numA - numB;
-            });
-            outputText.value = sortedItems.map(i => `${i.label}: $${i.price || '0'}`).join('\n');
-        }
+// ── Tooltip ──────────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+document.addEventListener('mousemove', e => {
+  tooltip.style.left = (e.clientX + 14) + 'px';
+  tooltip.style.top  = (e.clientY - 32) + 'px';
+});
 
-        function copyList() {
-            outputText.select();
-            document.execCommand('copy');
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
+// ── Export ───────────────────────────────────────────────────
+function exportSVG() {
+  const svgEl = document.getElementById('map-svg');
+  const data = new XMLSerializer().serializeToString(svgEl);
+  const blob = new Blob([data], { type: 'image/svg+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'japan_challenge.svg';
+  a.click();
+}
 
-        function downloadResult() {
-            if (!originalImage) return;
+function exportPNG() {
+  const svgEl = document.getElementById('map-svg');
+  const w = svgEl.clientWidth, h = svgEl.clientHeight;
+  const scale = 2;
+  const data = new XMLSerializer().serializeToString(svgEl);
+  const blob = new Blob([data], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0d111a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.download = 'japan_challenge.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  img.onerror = () => {
+    alert('PNG 輸出失敗（瀏覽器安全限制），請改用 SVG 輸出。');
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-            img.onload = () => {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+document.getElementById('export-svg-btn').addEventListener('click', exportSVG);
+document.getElementById('export-png-btn').addEventListener('click', exportPNG);
 
-                items.forEach(item => {
-                    const px = (item.x / 100) * canvas.width;
-                    const py = (item.y / 100) * canvas.height;
-                    const radius = Math.max(canvas.width, canvas.height) * 0.015;
+// ── Map init ─────────────────────────────────────────────────
+async function initMap() {
+  const topo = await d3.json(TOPOJSON_URL);
+  document.getElementById('loading').style.display = 'none';
 
-                    ctx.beginPath();
-                    ctx.arc(px, py, radius, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                    ctx.fill();
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = radius * 0.1;
-                    ctx.stroke();
+  const features = topojson.feature(topo, topo.objects.japan).features;
+  const svg = d3.select('#map-svg');
+  const g   = d3.select('#map-g');
+  const mapArea = document.querySelector('.map-area');
 
-                    ctx.fillStyle = 'white';
-                    ctx.font = `bold ${radius * 1.2}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(item.label, px, py);
-                });
+  function getSize() {
+    return [mapArea.clientWidth, mapArea.clientHeight];
+  }
 
-                const link = document.createElement('a');
-                link.download = 'marked_products.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            };
-            img.src = originalImage;
-        }
-    </script>
+  let projection, path;
+
+  function buildProjection() {
+    const [w, h] = getSize();
+    projection = d3.geoMercator().fitSize([w, h], { type: 'FeatureCollection', features });
+    path = d3.geoPath().projection(projection);
+    svg.attr('viewBox', `0 0 ${w} ${h}`);
+  }
+
+  function render() {
+    buildProjection();
+
+    g.selectAll('path').remove();
+
+    g.selectAll('path')
+      .data(features)
+      .enter()
+      .append('path')
+      .attr('class', d => {
+        const id = String(d.properties.id || '');
+        const rec = db[id];
+        const visited = rec && (rec.photo || rec.memo);
+        return `prefecture ${visited && !rec.photo ? 'visited' : visited ? '' : 'unvisited'}`;
+      })
+      .attr('data-id', d => String(d.properties.id || ''))
+      .attr('data-nam', d => d.properties.nam || '')
+      .attr('d', path)
+      .on('mouseenter', (event, d) => {
+        const id = String(d.properties.id || '');
+        tooltip.textContent = `${PREF_JA[id] || ''} ${d.properties.nam || ''}`.trim();
+        tooltip.style.opacity = 1;
+      })
+      .on('mouseleave', () => { tooltip.style.opacity = 0; })
+      .on('click', (event, d) => {
+        const id = String(d.properties.id || '');
+        if (!db[id]) db[id] = { nam: d.properties.nam || '' };
+        else if (!db[id].nam) db[id].nam = d.properties.nam || '';
+        selectPref(id);
+      });
+
+    restoreAllPhotos();
+    if (selectedId) d3.select(`[data-id="${selectedId}"]`).classed('active', true);
+  }
+
+  // D3 zoom
+  zoomBehavior = d3.zoom()
+    .scaleExtent([0.4, 20])
+    .on('zoom', event => {
+      currentTransform = event.transform;
+      g.attr('transform', event.transform);
+    });
+
+  svg.call(zoomBehavior);
+
+  document.getElementById('zoom-in-btn').addEventListener('click', () => {
+    svg.transition().duration(300).call(zoomBehavior.scaleBy, 1.6);
+  });
+  document.getElementById('zoom-out-btn').addEventListener('click', () => {
+    svg.transition().duration(300).call(zoomBehavior.scaleBy, 1 / 1.6);
+  });
+  document.getElementById('zoom-reset-btn').addEventListener('click', () => {
+    svg.transition().duration(400).call(zoomBehavior.transform, d3.zoomIdentity);
+  });
+
+  render();
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      render();
+      svg.call(zoomBehavior.transform, d3.zoomIdentity);
+    }, 200);
+  });
+
+  updateProgress();
+  updateThumbs();
+}
+
+initMap().catch(err => {
+  document.getElementById('loading').innerHTML =
+    `<span style="color:#f87171">地圖載入失敗，請確認網路連線。</span><br><small style="color:#4a5568">${err.message}</small>`;
+});
+</script>
 </body>
 </html>
